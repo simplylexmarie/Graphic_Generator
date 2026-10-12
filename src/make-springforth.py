@@ -241,6 +241,7 @@ rep('  <aside class="panel" id="left">\n',
         <button class="btn sm" id="calNext" title="Next month with a tab" aria-label="Next month">›</button>
       </div>
       <p class="hint" id="calStatus"></p>
+      <button class="btn sm" id="calMonthGen" style="width:100%;margin-bottom:6px" title="One graphic for every post in this month, with layouts and borders mixed">\U0001F5D3 Generate the whole month</button>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend" id="calLegend"></div>
       <div id="calDetail"></div>
@@ -290,6 +291,13 @@ rep('''  <aside class="panel" id="right">
       <h2>Options for this post <button class="btn link" id="optsClose" title="Hide the options">Close</button></h2>
       <div class="opts-row" id="optsRow"></div>
       <button class="btn sm" id="optsMore" style="width:100%;margin-top:8px" title="Three more, with the next-best photos">More options</button>
+    </div>
+    <div class="sec" id="monthSec" hidden>
+      <h2><span id="monthTitle">This month</span> <button class="btn link" id="monthClose" title="Put the month set away">Close</button></h2>
+      <p class="hint" style="margin:0 0 6px">Click a post to open it on the canvas and adjust it \u2014 your changes are kept.</p>
+      <div class="opts-row" id="monthGrid"></div>
+      <button class="btn sm primary" id="monthZip" style="width:100%;margin-top:8px" title="Every graphic as a PNG named by date, plus captions.txt">Download all (zip)</button>
+      <button class="btn sm" id="monthDrive" style="width:100%;margin-top:6px" hidden title="File every graphic in the Drive folder and show it in the calendar sheet">\u2601 Save all to Drive</button>
     </div>
     <div class="sec">''')
 rep('<button class="btn sm" id="addText">+ Add text</button>',
@@ -521,7 +529,9 @@ rep("    saveBlob(blob, filename()); markUsed(); if (tab !== 'search') renderRes
     "    saveBlob(blob, filename()); markUsed(); markPostDone(selectedPost()); renderResults();")
 
 # ================= social calendar =================
-rep("// ---------- misc ----------", blk('calendar.js') + "\n" + blk('context.js') + "\n// ---------- misc ----------")
+rep("// ---------- misc ----------", blk('calendar.js') + "\n" + blk('context.js') + "\n" + blk('month.js') + "\n// ---------- misc ----------")
+rep('<button class="btn primary" id="dlBtn">Download PNG</button>',
+    '<button class="btn sm" id="driveBtn" hidden title="File this graphic in the Drive folder and show it in the calendar sheet">\u2601 Save to Drive</button>\n    <button class="btn primary" id="dlBtn">Download PNG</button>')
 
 # ================= fonts / boot =================
 rep("  try { await Promise.all(['italic 600 40px','600 40px','700 40px','500 40px','400 40px','italic 500 40px','italic 700 40px'].map(f => document.fonts.load(`${f} \"Cormorant Garamond\"`))); } catch {}",

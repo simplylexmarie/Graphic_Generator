@@ -138,6 +138,37 @@ function assignFrames(specs){
   }
 }
 
+// The options a post gets, best first: what the month batch and the three-option view share.
+function specsFor(p, offered){
+  const head = headlineFor(p);
+  const ranked = rankPhotos(p, offered);
+  const list = captionList(p.post), quote = captionQuote(p.post);
+  const bucket = String(p.bucket || '').toLowerCase();
+  const specs = [];
+  if (p.noHead && ranked.length) {
+    // x in HOOK TEXT: the picture is the post — full photos in the frame, and a collage
+    specs.push({ label:'Photo only', template:'logo', photo:ranked[0] });
+    if (ranked[1]) specs.push(/enroll/.test(bucket)
+      ? { label:'Enrolling badge', template:'logo', photo:ranked[1], frame:'none', badge:true }
+      : { label:'Photo only', template:'logo', photo:ranked[1] });
+    if (ranked.length >= 5) specs.push({ label:'Collage', template:'collage', photos:ranked.slice(2, 6) });
+    else if (ranked[2]) specs.push({ label:'Photo only', template:'logo', photo:ranked[2] });
+  } else if (ranked.length) {
+    specs.push({ label:'Photo + headline', template:'headline', headline:head, photo:ranked[0] });
+    // enrollment posts get the full photo with their Now Enrolling badge
+    if (ranked[1]) specs.push(/enroll/.test(bucket)
+      ? { label:'Enrolling badge', template:'photo', headline:head, photo:ranked[1], frame:'none', badge:true }
+      : { label:'Full photo', template:'photo', headline:head, photo:ranked[1] });
+  }
+  if (p.noHead) { /* no writing on the page, so no list, quote or note card */ }
+  else if (list) specs.push({ label:'List card', template:'list', headline:list.headline, items:list.items });
+  else if (quote) specs.push({ label:'Parent quote', template:'quote', quote:quote.quote, attr:quote.attr });
+  else if (/community|enroll/.test(bucket) && ranked.length >= 5) specs.push({ label:'Collage', template:'collage', headline:head, photos:ranked.slice(2, 6) });
+  else specs.push({ label:'Note card', template:'note', headline:head });
+  if (!p.noHead && specs.length < 3 && ranked[2]) specs.splice(1, 0, { label:'Photo + headline', template:'headline', headline:head, photo:ranked[2] });
+  return specs;
+}
+
 const CTX = { iso:null, offered:new Set(), options:[], on:-1 };
 function calTarget(){ return selectedPost() || viewPosts()[0] || null; }
 
@@ -154,32 +185,7 @@ async function generateFromPost(){
     if (CAL.view && CAL.view.kind === 'week') CAL.view.used = p.iso; else CAL.view = { kind:'day', iso:p.iso };
     if (CTX.iso !== p.iso) { CTX.iso = p.iso; CTX.offered = new Set(); }
     pushUndo();
-    const head = headlineFor(p);
-    const ranked = rankPhotos(p, CTX.offered);
-    const list = captionList(p.post), quote = captionQuote(p.post);
-    const bucket = String(p.bucket || '').toLowerCase();
-    const specs = [];
-    if (p.noHead && ranked.length) {
-      // x in HOOK TEXT: the picture is the post — full photos in the frame, and a collage
-      specs.push({ label:'Photo only', template:'logo', photo:ranked[0] });
-      if (ranked[1]) specs.push(/enroll/.test(bucket)
-        ? { label:'Enrolling badge', template:'logo', photo:ranked[1], frame:'none', badge:true }
-        : { label:'Photo only', template:'logo', photo:ranked[1] });
-      if (ranked.length >= 5) specs.push({ label:'Collage', template:'collage', photos:ranked.slice(2, 6) });
-      else if (ranked[2]) specs.push({ label:'Photo only', template:'logo', photo:ranked[2] });
-    } else if (ranked.length) {
-      specs.push({ label:'Photo + headline', template:'headline', headline:head, photo:ranked[0] });
-      // enrollment posts get the full photo with their Now Enrolling badge
-      if (ranked[1]) specs.push(/enroll/.test(bucket)
-        ? { label:'Enrolling badge', template:'photo', headline:head, photo:ranked[1], frame:'none', badge:true }
-        : { label:'Full photo', template:'photo', headline:head, photo:ranked[1] });
-    }
-    if (p.noHead) { /* no writing on the page, so no list, quote or note card */ }
-    else if (list) specs.push({ label:'List card', template:'list', headline:list.headline, items:list.items });
-    else if (quote) specs.push({ label:'Parent quote', template:'quote', quote:quote.quote, attr:quote.attr });
-    else if (/community|enroll/.test(bucket) && ranked.length >= 5) specs.push({ label:'Collage', template:'collage', headline:head, photos:ranked.slice(2, 6) });
-    else specs.push({ label:'Note card', template:'note', headline:head });
-    if (!p.noHead && specs.length < 3 && ranked[2]) specs.splice(1, 0, { label:'Photo + headline', template:'headline', headline:head, photo:ranked[2] });
+    const specs = specsFor(p, CTX.offered);
     assignFrames(specs.slice(0, 3));
     CTX.options = [];
     for (const o of specs.slice(0, 3)) {
