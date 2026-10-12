@@ -280,3 +280,36 @@ cv.addEventListener('dblclick', e => {
   S.sel = el.id; renderInspector(); render();
   toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
 });
+
+// Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its
+// frame), or the full-page photo. While two fingers are down the ordinary drag stands aside.
+const touches = new Map();
+let pinch = null;
+cv.style.touchAction = 'none';
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size !== 2) return;
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const [mx, my] = toDesign({ clientX:(x1+x2)/2, clientY:(y1+y2)/2 });
+  const el = hitEl(mx, my);
+  const target = el && el.type === 'image' ? el : (S.bg.kind === 'photo' && IMG.bg ? 'bg' : null);
+  if (!target) return;
+  drag = null;                                   // the first finger's drag doesn't get to move things
+  pinch = { target, d0: Math.hypot(x2-x1, y2-y1), z0: target === 'bg' ? (S.bg.zoom || 1) : (target.zoom || 1) };
+  e.stopImmediatePropagation();
+}, true);
+cv.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (!pinch || touches.size < 2) return;
+  e.stopImmediatePropagation();
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const z = pinch.z0 * Math.hypot(x2-x1, y2-y1) / pinch.d0;
+  if (pinch.target === 'bg') { S.bg.zoom = Math.max(1, Math.min(3, z)); $('#zoom').value = Math.round(S.bg.zoom*100); }
+  else { pinch.target.zoom = Math.max(1, Math.min(4, z)); const s = $('#insp-zoom'); if (s) s.value = Math.round(pinch.target.zoom*100); }
+  render();
+}, true);
+const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+cv.addEventListener('pointerup', endTouch, true);
+cv.addEventListener('pointercancel', endTouch, true);
