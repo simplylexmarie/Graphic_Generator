@@ -7,8 +7,10 @@ inlined, so browsers cache them. Every page gets the same head extras (favicon, 
 noindex) and a version stamp on clients.js so a changed client list is picked up without a
 hard refresh.
 """
-import pathlib, re, shutil, time
+import pathlib, re, shutil, sys, time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT/'src/shared'))
+import inject   # calendar, options, month, Drive, Clear, zoom — the same for every studio
 VERSION = time.strftime('%Y%m%d%H%M')
 
 def head_extras(html, desc, icon):
@@ -30,7 +32,7 @@ def ship_logos(slug, tpl, files):
 def build_bakken_young():
     tpl = (ROOT/'src/template-bakken-young.html').read_text()
     html = ship_logos('bakken-young', tpl, [('__LOGO_B64__', ROOT/'assets/bakken-young/logo-white.png')])
-    html = head_extras(html, 'Bakken-Young social graphics studio', 'logo.png')
+    html = head_extras(inject.apply(html, 'bakken-young'), 'Bakken-Young social graphics studio', 'logo.png')
     (ROOT/'bakken-young/index.html').write_text(html); print('bakken-young  ok')
 
 def build_mcmillan():
@@ -39,7 +41,7 @@ def build_mcmillan():
     A = ROOT/'assets/mcmillan'
     html = ship_logos('mcmillan', src.read_text(), [('__LOGO_B64__', A/'logo-white.png'),
                       ('__MARK_B64__', A/'mark-white.png'), ('__LOGOC_B64__', A/'logo-color.png')])
-    html = head_extras(html, 'McMillan social graphics studio', 'logo.png')
+    html = head_extras(inject.apply(html, 'mcmillan'), 'McMillan social graphics studio', 'logo.png')
     (ROOT/'mcmillan/index.html').write_text(html); print('mcmillan      ok')
 
 def build_springforth():
@@ -50,7 +52,7 @@ def build_springforth():
         ('__MARK_B64__', A/'mark-color.png'), ('__MARKW_B64__', A/'mark-white.png'),
         ('__LOCKUP_B64__', A/'lockup-color.png'), ('__LOCKUPW_B64__', A/'lockup-white.png'),
         ('__WORD_B64__', A/'wordmark-h.png'), ('__WORDW_B64__', A/'wordmark-h-white.png')])
-    html = head_extras(html, 'Spring Forth Academy social graphics studio', 'logo.png')
+    html = head_extras(inject.apply(html, 'springforth'), 'Spring Forth Academy social graphics studio', 'logo.png')
     (ROOT/'springforth/index.html').write_text(html); print('springforth   ok')
 
 def build_welcome():

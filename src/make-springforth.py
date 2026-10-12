@@ -164,44 +164,7 @@ rep(".tile svg{width:38px;height:38px;display:block}",
     ".stickers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:4px}\n"
     ".stickers button{border:1px solid var(--line);border-radius:7px;background:var(--panel-2);padding:5px;cursor:pointer;height:50px;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center}\n"
     ".stickers button:hover{border-color:var(--accent);background:var(--accent-soft)}\n"
-    ".stickers img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}" + "\n"
-    ".cal-nav{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}\n"
-    ".cal-nav select{width:100%}\n"
-    ".cal-nav .btn[disabled]{opacity:.35;cursor:default}\n"
-    ".cal-grid{display:grid;grid-template-columns:auto repeat(7,minmax(0,1fr));gap:2px;margin:6px 0}\n"
-    ".cg-corner,.cg-dow{font-size:9px;opacity:.55;text-align:center;padding:2px 0;letter-spacing:.02em}\n"
-    ".cg-wk{font:inherit;font-size:9px;font-weight:700;opacity:.7;background:none;border:0;color:inherit;cursor:pointer;padding:0 3px 0 0;border-radius:5px}\n"
-    ".cg-wk:disabled{opacity:.25;cursor:default}\n"
-    ".cg-wk[aria-pressed=\"true\"]{opacity:1;color:var(--accent)}\n"
-    ".cg-day{position:relative;font:inherit;border:1px solid transparent;border-radius:6px;background:none;color:inherit;aspect-ratio:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:default}\n"
-    ".cg-day.out .cg-num{opacity:.28}\n"
-    ".cg-num{font-size:10px;line-height:1}\n"
-    ".cg-day.today{border-color:var(--line-strong)}\n"
-    ".cg-day.has{cursor:pointer;background:var(--panel-2)}\n"
-    ".cg-day.has:hover{border-color:var(--accent)}\n"
-    ".cg-day[aria-pressed=\"true\"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}\n"
-    ".cg-dot{width:6px;height:6px;border-radius:50%;display:block}\n"
-    ".cg-tick{font-size:9px;line-height:1;color:var(--accent);font-weight:700}\n"
-    ".cal-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:9px;opacity:.75;margin-bottom:8px}\n"
-    ".cg-key{display:inline-flex;align-items:center;gap:4px}\n"
-    ".cg-key i{width:6px;height:6px;border-radius:50%;display:block}\n"
-    ".cd-wrap{display:flex;flex-direction:column;gap:8px}\n"
-    ".cd-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px}\n"
-    ".cd-card{font:inherit;color:inherit;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:7px;display:flex;flex-direction:column;gap:4px;min-width:0;cursor:pointer}\n"
-    ".cd-card:hover{border-color:var(--accent)}\n"
-    ".cd-card.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}\n"
-    ".cd-use{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}\n"
-    ".cd-head{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:11px;flex-wrap:wrap}\n"
-    ".cd-bucket{font-size:9px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;text-align:right}\n"
-    ".cd-hook{font-size:12px;line-height:1.35}\n"
-    ".cd-gen{width:100%;margin-top:8px}\n"
-    ".opts-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}\n"
-    ".opt{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}\n"
-    ".opt:hover{border-color:var(--accent)}\n"
-    ".opt[aria-pressed=\"true\"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}\n"
-    ".opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}\n"
-    ".opt span{font-size:11px;opacity:.8}\n"
-    ".cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}")
+    ".stickers img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}")
 rep(".tile{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel-2);padding:8px 6px;",
     ".tile{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel-2);padding:7px 4px;")
 rep("""      <div class="row" id="textPosRow"><label>Text</label>
@@ -231,23 +194,6 @@ rep("""      <div class="row" id="textPosRow"><label>Text</label>
           <button data-v="c" aria-pressed="false">White footer</button>
         </div></div>
       <div class="row" id="noteFillRow"><label>Note</label><div class="swatches" id="noteFills"></div></div>""")
-# the calendar opens the rail: the schedule is where the work starts
-rep('  <aside class="panel" id="left">\n',
-    '  <aside class="panel" id="left">\n' + """    <div class="sec" id="calSec" hidden>
-      <h2>Calendar <button class="btn link" id="calSync" title="Re-read the sheet now">Refresh</button> <button class="btn link" id="calOpen" title="Open the schedule in Google Sheets">Open calendar</button></h2>
-      <div class="cal-nav">
-        <button class="btn sm" id="calPrev" title="Previous month with a tab" aria-label="Previous month">‹</button>
-        <select id="calMonth" aria-label="Month"></select>
-        <button class="btn sm" id="calNext" title="Next month with a tab" aria-label="Next month">›</button>
-      </div>
-      <p class="hint" id="calStatus"></p>
-      <button class="btn sm" id="calMonthGen" style="width:100%;margin-bottom:6px" title="One graphic for every post in this month, with layouts and borders mixed">\U0001F5D3 Generate the whole month</button>
-      <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-legend" id="calLegend"></div>
-      <div id="calDetail"></div>
-    </div>
-""")
-
 # background section replaces the Pexels search section
 i = s.index('    <div class="sec">\n      <h2>Background photo'); j = s.index('    <div class="sec">\n      <h2>Photo adjustments')
 s = s[:i] + """    <div class="sec">
@@ -276,30 +222,6 @@ s = s[:i] + """    <div class="sec">
 
 """ + s[j:]
 rep('<button class="btn sm" id="shufPhoto" title="Keep the layout, try a different photo">Shuffle photo</button>', '<button class="btn sm" id="shufPhoto" title="Keep the text, try a different background">Shuffle background</button>')
-rep('<button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>',
-    '<button class="btn sm gen" id="calGen" disabled title="Pick a post in the calendar first">📅 Generate from calendar</button>\n'
-    '      <button class="btn sm" id="genBtn" title="Build a graphic from your own text with a random photo, look and layout — not tied to the calendar">✨ Random</button>')
-# Clear: a blank page (paper and the frame) to start over from; Undo brings the graphic back
-rep('<button class="btn sm" id="resetBtn" title="Put everything back where the template starts">Reset layout</button>',
-    '<button class="btn sm" id="resetBtn" title="Put everything back where the template starts">Reset layout</button>\n'
-    '    <button class="btn sm" id="clearBtn" title="Start over on a blank page (Undo brings it back)">Clear</button>')
-# the three calendar options sit at the top of the right rail, in view beside the canvas
-rep('''  <aside class="panel" id="right">
-    <div class="sec">''',
-    '''  <aside class="panel" id="right">
-    <div class="sec opts" id="opts" hidden>
-      <h2>Options for this post <button class="btn link" id="optsClose" title="Hide the options">Close</button></h2>
-      <div class="opts-row" id="optsRow"></div>
-      <button class="btn sm" id="optsMore" style="width:100%;margin-top:8px" title="Three more, with the next-best photos">More options</button>
-    </div>
-    <div class="sec" id="monthSec" hidden>
-      <h2><span id="monthTitle">This month</span> <button class="btn link" id="monthClose" title="Put the month set away">Close</button></h2>
-      <p class="hint" style="margin:0 0 6px">Click a post to open it on the canvas and adjust it \u2014 your changes are kept.</p>
-      <div class="opts-row" id="monthGrid"></div>
-      <button class="btn sm primary" id="monthZip" style="width:100%;margin-top:8px" title="Every graphic as a PNG named by date, plus captions.txt">Download all (zip)</button>
-      <button class="btn sm" id="monthDrive" style="width:100%;margin-top:6px" hidden title="File every graphic in the Drive folder and show it in the calendar sheet">\u2601 Save all to Drive</button>
-    </div>
-    <div class="sec">''')
 rep('<button class="btn sm" id="addText">+ Add text</button>',
     '<button class="btn sm" id="collageQuick" title="Generate a photo collage">⊞ Collage</button>\n      <button class="btn sm" id="addText">+ Add text</button>')
 rep('<h2>Photo adjustments <button class="btn link" id="autoBtn" title="Set Darken and Fade based on how bright the photo is behind the logo and text">Auto-adjust</button></h2>',
@@ -506,8 +428,6 @@ rep("""  IMG.bg = null; IMG.src = null;
   } catch { toast('An image for this draft couldn’t be loaded'); }
   finally { $('#loading').classList.remove('show'); }""")
 rep("  return `bakken-young-${slug}-${w}x${hh}.png`;",
-    "  // a graphic made for a calendar post is named after it, so a month\u2019s files sort by date\n"
-    "  const cal = (size == null) && calFilename(); if (cal) return cal;\n"
     "  return `springforth-${slug}-${w}x${hh}.png`;")
 rep("  const base = (S.template === 'headline' || S.template === 'event') ? (byId('headline')?.text || 'headline') : S.template === 'review' ? 'featured-review' : 'logo';",
     "  const base = byId('headline')?.text || (S.template === 'quote' ? 'parent-quote' : S.template === 'collage' ? 'collage' : S.template);")
@@ -526,12 +446,7 @@ rep("""function draftName(){
 rep_between("// ---------- Generate (randomizer) ----------", "// ---------- misc ----------", blk('generate.js'))
 
 rep("    saveBlob(blob, filename()); markUsed(); if (tab !== 'search') renderResults();",
-    "    saveBlob(blob, filename()); markUsed(); markPostDone(selectedPost()); renderResults();")
-
-# ================= social calendar =================
-rep("// ---------- misc ----------", blk('calendar.js') + "\n" + blk('context.js') + "\n" + blk('month.js') + "\n// ---------- misc ----------")
-rep('<button class="btn primary" id="dlBtn">Download PNG</button>',
-    '<button class="btn sm" id="driveBtn" hidden title="File this graphic in the Drive folder and show it in the calendar sheet">\u2601 Save to Drive</button>\n    <button class="btn primary" id="dlBtn">Download PNG</button>')
+    "    saveBlob(blob, filename()); markUsed(); renderResults();")
 
 # ================= fonts / boot =================
 rep("  try { await Promise.all(['italic 600 40px','600 40px','700 40px','500 40px','400 40px','italic 500 40px','italic 700 40px'].map(f => document.fonts.load(`${f} \"Cormorant Garamond\"`))); } catch {}",
@@ -547,7 +462,6 @@ rep("""  restore(); loadPhotoMem();
   IMG.src = { kind:'ground', ground:S.bg.ground };
   await loadArt();
   renderLooks(); templateDefaults(); layout(); syncControls(); fitCanvas(); renderDrafts();
-  wireCalendar();
   await loadLibrary();
   // the opening page obeys the same house rule as every other: a headline arrives with a photo
   if (S.template === 'headline' && !byId('photo') && S.bg.kind === 'paper') {

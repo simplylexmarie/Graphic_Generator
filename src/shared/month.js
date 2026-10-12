@@ -1,4 +1,4 @@
-// ---------- the whole month at once ----------
+// ---------- the whole month at once (shared) ----------
 // One graphic per post in the month on view, built the way "Generate from calendar" builds
 // them, with the layouts and borders mixed across the month and no photo used twice. The set
 // sits in the right rail: click a post to open it on the canvas and tweak it (the change is
@@ -6,7 +6,6 @@
 
 const MONTH = { key:null, label:'', items:[], on:-1 };
 
-function postFilename(p){ return 'SpringForth_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png'; }
 function postLabel(p){ return DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate(); }
 
 async function generateMonth(){
@@ -20,17 +19,17 @@ async function generateMonth(){
     pushUndo();
     const offered = new Set(), items = [];
     // borders go round in a shuffled order so neighbouring posts don't match
-    const order = FRAMES.map(f => ({ f, k: Math.pow(Math.random(), 1/f.weight) })).sort((a,b) => b.k - a.k).map(x => x.f);
+    const order = frameOrder();
     let fi = 0;
     for (let i = 0; i < m.posts.length; i++) {
       const p = m.posts[i];
       $('#loading').textContent = 'Building ' + postLabel(p) + ' (' + (i+1) + ' of ' + m.posts.length + ')…';
-      const specs = specsFor(p, offered);
+      const specs = STUDIO.specsFor(p, offered);
       if (!specs.length) continue;
       // mix the layouts across the month: each post takes the next of its own top options
       const s = Object.assign({}, specs[i % Math.min(3, specs.length)]);
-      if (!s.frame) s.frame = order[fi++ % order.length];
-      const built = await buildOption(s);
+      if (!s.frame && order.length) s.frame = order[fi++ % order.length];
+      const built = await STUDIO.buildOption(s);
       built.photos.forEach(id => offered.add(id));
       items.push({ p, built });
     }
@@ -100,7 +99,7 @@ async function downloadMonth(){
     const zip = new JSZip();
     for (const it of MONTH.items) zip.file(postFilename(it.p), await renderItem(it));
     zip.file('captions.txt', captionsText());
-    saveBlob(await zip.generateAsync({ type:'blob' }), 'SpringForth_' + MONTH.label.replace(/\s+/g, '-') + '.zip');
+    saveBlob(await zip.generateAsync({ type:'blob' }), STUDIO.filePrefix + '_' + MONTH.label.replace(/\s+/g, '-') + '.zip');
     MONTH.items.forEach(it => { calDone[doneKey(it.p)] = Date.now(); }); saveCalDone();
     renderCalendar(); renderMonth();
   } catch (err) { console.error(err); toast('Couldn’t make the zip: ' + (err.message || err)); }
@@ -110,7 +109,7 @@ async function downloadMonth(){
 // ---------- Save to Drive ----------
 // Talks to the Apps Script web app in apps-script/ (set up once; its URL goes in clients.js as
 // calendar.driveEndpoint). The team passcode is asked for once and remembered in this browser.
-const DRIVE_PASS_KEY = 'sfa-drive-pass';
+const DRIVE_PASS_KEY = STUDIO.slug + '-drive-pass';
 function driveCfg(){ const c = calCfg(); return c && c.driveEndpoint ? c : null; }
 function drivePass(ask){
   let v = ''; try { v = localStorage.getItem(DRIVE_PASS_KEY) || ''; } catch {}
@@ -134,7 +133,7 @@ function blobToBase64(blob){
 function monthOf(p){ return CAL.months.find(m => m.y === p.date.getFullYear() && m.m === p.date.getMonth()); }
 async function savePostToDrive(p, blob){
   const cfg = driveCfg(), m = monthOf(p);
-  return drivePost({ action:'save', client:'Spring Forth', month: MONTHS[p.date.getMonth()] + ' ' + p.date.getFullYear(),
+  return drivePost({ action:'save', client:STUDIO.name, month: MONTHS[p.date.getMonth()] + ' ' + p.date.getFullYear(),
     filename: postFilename(p), png: await blobToBase64(blob),
     sheetId: cfg.sheetId, tab: m ? m.tab : '', iso: p.iso, dateCol: cfg.cols.date, imageCol: cfg.cols.image });
 }
@@ -174,7 +173,7 @@ async function syncDoneFromDrive(){
   if (!driveCfg() || !drivePass(false)) return;
   for (const m of CAL.months) {
     try {
-      const j = await drivePost({ action:'status', client:'Spring Forth', month:m.label }, false);
+      const j = await drivePost({ action:'status', client:STUDIO.name, month:m.label }, false);
       const names = new Set(j.files || []);
       for (const p of m.posts) if (names.has(postFilename(p))) calDone[doneKey(p)] = calDone[doneKey(p)] || Date.now();
     } catch { return; }
@@ -190,6 +189,7 @@ $('#driveBtn').addEventListener('click', saveCurrentToDrive);
 (async () => {
   if (!window.BI_CLIENTS) await new Promise(r => window.addEventListener('load', r, { once:true }));
   $('#driveBtn').hidden = !driveCfg();
+  $('#calMonthGen').hidden = !STUDIO.specsFor;
   // wait for the calendar's first read before asking Drive what's already filed
   for (let i = 0; i < 60 && !['ready','empty','offline'].includes(CAL.state); i++) await new Promise(r => setTimeout(r, 250));
   syncDoneFromDrive();

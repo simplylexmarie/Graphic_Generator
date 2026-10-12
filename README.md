@@ -26,8 +26,25 @@ python3 src/make-springforth.py   # regenerates src/template-springforth.html
 python3 src/build.py              # writes every studio's index.html
 ```
 
-`src/template-bakken-young.html` is the shared editor the other studios are derived from;
-`src/springforth/*.js` and `src/mcmillan/*.js` hold each client's own pieces.
+`src/template-bakken-young.html` is the editor core every studio is built from;
+`src/springforth/*.js` and `src/mcmillan/*.js` hold each client's own looks and layouts.
+
+### Shared features (`src/shared/`)
+
+`build.py` adds these to every studio, so a feature built once reaches every client:
+
+- `calendar.js` — reads the client's Google Sheet calendar (one tab per month)
+- `options.js` — "Generate from calendar": three matched options per post
+- `month.js` — the whole-month batch, the zip with captions, and Save to Drive
+- `clear.js`, `zoom.js` — Clear, and scroll/pinch zoom for photos
+- `calendar.css`, `inject.py` — the panels' styles, and the step that adds it all
+
+Each studio has a small adapter, `src/<client>/studio.js`, defining a `STUDIO` object: its
+name, file prefix, calendar buckets and colours, and how to blank its page. The calendar
+switches on for a client as soon as its `clients.js` entry gets a `calendar` block. The
+generate buttons appear when the adapter also provides `specsFor` (which layouts and photos
+suit a post) and `buildOption` (put one on the canvas) — Spring Forth's adapter is the model.
+Bakken-Young and McMillan don't have those yet; they'll need them when their calendars arrive.
 
 ## Photo library
 

@@ -1,7 +1,36 @@
-// ---------- Generate from the calendar ----------
-// The calendar post decides the graphic: its hook text is the headline, and its caption and
-// bucket decide which photos fit and which layout suits it. Three options come back side by
-// side; "More options" swaps in the next-best photos. Random generation is untouched.
+// ---------- Spring Forth: the studio adapter ----------
+// What the shared calendar, options, month and Clear modules need to know about this studio.
+const STUDIO = {
+  slug: 'springforth', name: 'Spring Forth', filePrefix: 'SpringForth',
+  // All four come off their own pages. Sky and deep blue were the obvious pair for the first
+  // two buckets, but at dot size they are the same colour, so Equipping takes the green from
+  // the pushpin on their cork-board quotes instead. ("enroll" also catches "Enrollement".)
+  buckets: [
+    ['inspir', 'Inspiring Growth', '#1cc1e0'],
+    ['equip',  'Equipping',        '#02d594'],
+    ['commun', 'Community',        '#ffc000'],
+    ['enroll', 'Enrollment',       '#bb8a2d'],
+  ],
+  bucketTopics: { 'inspiring growth':'values', 'equipping':'philosophy', 'community':'community', 'enrollment':'enroll', 'enrollement':'enroll' },
+  // a headline lands on a note card when the page is a bare photo
+  applyHeadline(head){
+    if (S.template === 'logo' || S.template === 'photo') { S.template = 'note'; templateDefaults(); }
+    layout();
+    const el = byId('headline');
+    if (el) el.text = head;
+    else { S.template = 'note'; templateDefaults(); layout(); const e2 = byId('headline'); if (e2) e2.text = head; }
+  },
+  // blank page: the paper and the wave frame. The photo stays loaded (just not shown on paper)
+  // so Undo brings the graphic back whole.
+  blank(){
+    S.template = 'logo'; S.els = [];
+    S.bg.kind = 'paper'; S.bg.ground = 'paper'; S.bg.cells = null; S.bg.dim = 0;
+    IMG.src = { kind:'ground', ground:'paper' };
+  },
+  get frames(){ return FRAMES; },
+  specsFor: (p, offered) => specsFor(p, offered),
+  buildOption: o => buildOption(o),
+};
 
 // Words in a post → photo tags (from springforth/library/manifest.json). Earlier tags in each
 // row weigh a little more than later ones.
@@ -127,17 +156,6 @@ const FRAMES = [
   { name:'white footer',     style:'c', wave:'bottom', weight:3 },
   { name:'plain wave',       style:'b', wave:'both',   weight:1 },
 ];
-function assignFrames(specs){
-  // weighted shuffle, then hand them out in order to the options that don't have one yet
-  const order = FRAMES.map(f => ({ f, k: Math.pow(Math.random(), 1/f.weight) })).sort((a,b) => b.k - a.k).map(x => x.f);
-  let i = 0;
-  for (const s of specs) {
-    if (s.frame) continue;
-    s.frame = order[i++ % order.length];
-    s.label += ' \u00b7 ' + s.frame.name;
-  }
-}
-
 // The options a post gets, best first: what the month batch and the three-option view share.
 function specsFor(p, offered){
   const head = headlineFor(p);
@@ -169,153 +187,3 @@ function specsFor(p, offered){
   return specs;
 }
 
-const CTX = { iso:null, offered:new Set(), options:[], on:-1 };
-function calTarget(){ return selectedPost() || viewPosts()[0] || null; }
-
-async function generateFromPost(){
-  if (genBusy) return;
-  const p = calTarget();
-  if (!p) { toast('Pick a post in the calendar first'); return; }
-  genBusy = true;
-  hideWelcome();
-  const btn = $('#calGen'); if (btn) btn.disabled = true;
-  $('#loading').classList.add('show');
-  try {
-    // the post becomes the selected one, so the download is named after it
-    if (CAL.view && CAL.view.kind === 'week') CAL.view.used = p.iso; else CAL.view = { kind:'day', iso:p.iso };
-    if (CTX.iso !== p.iso) { CTX.iso = p.iso; CTX.offered = new Set(); }
-    pushUndo();
-    const specs = specsFor(p, CTX.offered);
-    assignFrames(specs.slice(0, 3));
-    CTX.options = [];
-    for (const o of specs.slice(0, 3)) {
-      const built = await buildOption(o);
-      built.photos.forEach(id => CTX.offered.add(id));
-      CTX.options.push(built);
-    }
-    currentDraftId = null;
-    applyOption(0, false);
-    renderOptions();
-    renderCalendar();
-    toast('Three options for ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() + ' — pick one under Options for this post');
-  } catch (err) { console.error(err); toast('Couldn’t generate: ' + (err.message || err)); }
-  finally { $('#loading').classList.remove('show'); genBusy = false; updateCalGen(); }
-}
-
-function applyOption(i, undoable = true){
-  const o = CTX.options[i]; if (!o) return;
-  if (undoable) pushUndo();
-  Object.assign(S, clone(o.state)); S.sel = null;
-  IMG.bg = o.bg; IMG.src = o.src ? clone(o.src) : null;
-  CTX.on = i;
-  syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
-  renderOptions();
-}
-
-function renderOptions(){
-  const box = $('#opts'); if (!box) return;
-  box.hidden = !CTX.options.length;
-  const row = $('#optsRow'); row.innerHTML = '';
-  CTX.options.forEach((o, i) => row.append(h('button',{class:'opt','aria-pressed':String(i === CTX.on),
-    title:'Use this one', onclick:()=>applyOption(i)},
-    h('img',{src:o.thumb, alt:''}), h('span',{}, o.label))));
-}
-
-// The calendar button always says which post it will use, so there's no guessing.
-function updateCalGen(){
-  const b = $('#calGen'); if (!b) return;
-  if (!calCfg()) { b.hidden = true; return; }
-  const p = calTarget();
-  // options made for one post shouldn't linger once another post is picked
-  if (CTX.options.length && (!p || p.iso !== CTX.iso)) { CTX.options = []; CTX.on = -1; renderOptions(); }
-  b.disabled = !p || genBusy;
-  b.textContent = '\u{1F4C5} Generate from calendar' + (p ? ' \u00b7 ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() : '');
-  b.title = p ? 'Build three graphics matched to this post: ' + (p.bucket || 'post') + ' — ' + (p.noHead ? 'photo only' : p.hook || 'no hook text yet') : 'Pick a post in the calendar first';
-}
-
-$('#calGen').addEventListener('click', generateFromPost);
-$('#optsMore').addEventListener('click', generateFromPost);
-$('#optsClose').addEventListener('click', () => { CTX.options = []; CTX.on = -1; renderOptions(); });
-
-// Clear: everything off the page but the paper and the wave frame. The calendar selection
-// stays, so the next "Generate from calendar" picks up where Karissa was.
-$('#clearBtn').addEventListener('click', () => {
-  pushUndo();
-  S.template = 'logo'; S.els = []; S.sel = null;
-  S.bg.kind = 'paper'; S.bg.ground = 'paper'; S.bg.cells = null; S.bg.dim = 0;
-  // the photo stays loaded (just not shown on paper) so Undo brings the graphic back whole
-  IMG.src = { kind:'ground', ground:'paper' };
-  CTX.options = []; CTX.on = -1; renderOptions();
-  currentDraftId = null;
-  hideWelcome();
-  templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
-  toast('Cleared \u2014 Undo brings it back');
-});
-
-// ---------- zooming photos ----------
-// Scroll (or trackpad-pinch) over a framed or collage photo to zoom it inside its frame, or
-// over a full-page photo to zoom the background. One undo step per gesture.
-var cropMode = null;                 // id of the framed photo whose drag pans inside its frame
-let wheelUndoAt = 0;
-cv.addEventListener('wheel', e => {
-  const [x, y] = toDesign(e);
-  const el = hitEl(x, y);
-  const photo = el && el.type === 'image' ? el : null;
-  if (!photo && !(S.bg.kind === 'photo' && IMG.bg && !el)) return;
-  e.preventDefault();
-  if (Date.now() - wheelUndoAt > 600) pushUndo();
-  wheelUndoAt = Date.now();
-  const f = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
-  if (photo) {
-    photo.zoom = Math.max(1, Math.min(4, (photo.zoom || 1) * f));
-    if (S.sel !== photo.id) { S.sel = photo.id; renderInspector(); }
-    const z = $('#insp-zoom'); if (z) z.value = Math.round(photo.zoom*100);
-  } else {
-    S.bg.zoom = Math.max(1, Math.min(3, (S.bg.zoom || 1) * f));
-    $('#zoom').value = Math.round(S.bg.zoom*100);
-  }
-  render();
-}, { passive:false });
-// Double-click a framed photo to switch dragging between moving the frame and moving the
-// photo inside it.
-cv.addEventListener('dblclick', e => {
-  const [x, y] = toDesign(e);
-  const el = hitEl(x, y);
-  if (!el || el.type !== 'image') return;
-  cropMode = cropMode === el.id ? null : el.id;
-  S.sel = el.id; renderInspector(); render();
-  toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
-});
-
-// Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its
-// frame), or the full-page photo. While two fingers are down the ordinary drag stands aside.
-const touches = new Map();
-let pinch = null;
-cv.style.touchAction = 'none';
-cv.addEventListener('pointerdown', e => {
-  if (e.pointerType !== 'touch') return;
-  touches.set(e.pointerId, [e.clientX, e.clientY]);
-  if (touches.size !== 2) return;
-  const [[x1, y1], [x2, y2]] = [...touches.values()];
-  const [mx, my] = toDesign({ clientX:(x1+x2)/2, clientY:(y1+y2)/2 });
-  const el = hitEl(mx, my);
-  const target = el && el.type === 'image' ? el : (S.bg.kind === 'photo' && IMG.bg ? 'bg' : null);
-  if (!target) return;
-  drag = null;                                   // the first finger's drag doesn't get to move things
-  pinch = { target, d0: Math.hypot(x2-x1, y2-y1), z0: target === 'bg' ? (S.bg.zoom || 1) : (target.zoom || 1) };
-  e.stopImmediatePropagation();
-}, true);
-cv.addEventListener('pointermove', e => {
-  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
-  touches.set(e.pointerId, [e.clientX, e.clientY]);
-  if (!pinch || touches.size < 2) return;
-  e.stopImmediatePropagation();
-  const [[x1, y1], [x2, y2]] = [...touches.values()];
-  const z = pinch.z0 * Math.hypot(x2-x1, y2-y1) / pinch.d0;
-  if (pinch.target === 'bg') { S.bg.zoom = Math.max(1, Math.min(3, z)); $('#zoom').value = Math.round(S.bg.zoom*100); }
-  else { pinch.target.zoom = Math.max(1, Math.min(4, z)); const s = $('#insp-zoom'); if (s) s.value = Math.round(pinch.target.zoom*100); }
-  render();
-}, true);
-const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
-cv.addEventListener('pointerup', endTouch, true);
-cv.addEventListener('pointercancel', endTouch, true);

@@ -175,6 +175,43 @@ canvas#c.dragging{cursor:grabbing}
   .canvas-wrap{padding:8px}
 }
 @media (prefers-reduced-motion:reduce){.toast{transition:none}.res .star{transition:none}}
+.cal-nav{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.cal-nav select{width:100%}
+.cal-nav .btn[disabled]{opacity:.35;cursor:default}
+.cal-grid{display:grid;grid-template-columns:auto repeat(7,minmax(0,1fr));gap:2px;margin:6px 0}
+.cg-corner,.cg-dow{font-size:9px;opacity:.55;text-align:center;padding:2px 0;letter-spacing:.02em}
+.cg-wk{font:inherit;font-size:9px;font-weight:700;opacity:.7;background:none;border:0;color:inherit;cursor:pointer;padding:0 3px 0 0;border-radius:5px}
+.cg-wk:disabled{opacity:.25;cursor:default}
+.cg-wk[aria-pressed="true"]{opacity:1;color:var(--accent)}
+.cg-day{position:relative;font:inherit;border:1px solid transparent;border-radius:6px;background:none;color:inherit;aspect-ratio:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:default}
+.cg-day.out .cg-num{opacity:.28}
+.cg-num{font-size:10px;line-height:1}
+.cg-day.today{border-color:var(--line-strong)}
+.cg-day.has{cursor:pointer;background:var(--panel-2)}
+.cg-day.has:hover{border-color:var(--accent)}
+.cg-day[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.cg-dot{width:6px;height:6px;border-radius:50%;display:block}
+.cg-tick{font-size:9px;line-height:1;color:var(--accent);font-weight:700}
+.cal-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:9px;opacity:.75;margin-bottom:8px}
+.cg-key{display:inline-flex;align-items:center;gap:4px}
+.cg-key i{width:6px;height:6px;border-radius:50%;display:block}
+.cd-wrap{display:flex;flex-direction:column;gap:8px}
+.cd-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px}
+.cd-card{font:inherit;color:inherit;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:7px;display:flex;flex-direction:column;gap:4px;min-width:0;cursor:pointer}
+.cd-card:hover{border-color:var(--accent)}
+.cd-card.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cd-use{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
+.cd-head{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:11px;flex-wrap:wrap}
+.cd-bucket{font-size:9px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;text-align:right}
+.cd-hook{font-size:12px;line-height:1.35}
+.cd-gen{width:100%;margin-top:8px}
+.opts-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.opt{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.opt:hover{border-color:var(--accent)}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}
+.opt span{font-size:11px;opacity:.8}
+.cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
 </style>
 </head>
 <body>
@@ -188,14 +225,29 @@ canvas#c.dragging{cursor:grabbing}
   <div class="top-actions">
     <button class="btn sm" id="undoBtn" title="Undo (⌘Z)">Undo</button>
     <button class="btn sm" id="resetBtn" title="Put everything back where the template starts">Reset layout</button>
+    <button class="btn sm" id="clearBtn" title="Start over on a blank page (Undo brings it back)">Clear</button>
     <button class="btn sm" id="saveBtn" title="Save this draft to reopen later (⌘S)">Save draft</button>
     <button class="btn sm" id="dlAllBtn" title="Download square, landscape, portrait and story versions in one zip">All sizes</button>
+    <button class="btn sm" id="driveBtn" hidden title="File this graphic in the Drive folder and show it in the calendar sheet">☁ Save to Drive</button>
     <button class="btn primary" id="dlBtn">Download PNG</button>
   </div>
 </header>
 
 <main class="app">
   <aside class="panel" id="left">
+    <div class="sec" id="calSec" hidden>
+      <h2>Calendar <button class="btn link" id="calSync" title="Re-read the sheet now">Refresh</button> <button class="btn link" id="calOpen" title="Open the schedule in Google Sheets">Open calendar</button></h2>
+      <div class="cal-nav">
+        <button class="btn sm" id="calPrev" title="Previous month with a tab" aria-label="Previous month">‹</button>
+        <select id="calMonth" aria-label="Month"></select>
+        <button class="btn sm" id="calNext" title="Next month with a tab" aria-label="Next month">›</button>
+      </div>
+      <p class="hint" id="calStatus"></p>
+      <button class="btn sm" id="calMonthGen" style="width:100%;margin-bottom:6px" title="One graphic for every post in this month, with layouts and borders mixed">🗓 Generate the whole month</button>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend" id="calLegend"></div>
+      <div id="calDetail"></div>
+    </div>
     <div class="sec">
       <h2>Template</h2>
       <div class="tiles" id="tiles">
@@ -289,6 +341,7 @@ canvas#c.dragging{cursor:grabbing}
     <div class="toolbar">
       <span class="hint">Click anything on the graphic to select it. Drag to move · corners to resize · <span class="kbd">←↑↓→</span> nudge · <span class="kbd">⌫</span> remove</span>
       <span class="spacer"></span>
+      <button class="btn sm gen" id="calGen" hidden disabled title="Pick a post in the calendar first">📅 Generate from calendar</button>
       <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>
       <button class="btn sm" id="shufPhoto" title="Keep the layout, try a different photo">Shuffle photo</button>
       <button class="btn sm" id="shufLook" title="Keep the photo, try a different look and layout">Shuffle look</button>
@@ -312,6 +365,18 @@ canvas#c.dragging{cursor:grabbing}
   </section>
 
   <aside class="panel" id="right">
+    <div class="sec opts" id="opts" hidden>
+      <h2>Options for this post <button class="btn link" id="optsClose" title="Hide the options">Close</button></h2>
+      <div class="opts-row" id="optsRow"></div>
+      <button class="btn sm" id="optsMore" style="width:100%;margin-top:8px" title="Three more, with the next-best photos">More options</button>
+    </div>
+    <div class="sec" id="monthSec" hidden>
+      <h2><span id="monthTitle">This month</span> <button class="btn link" id="monthClose" title="Put the month set away">Close</button></h2>
+      <p class="hint" style="margin:0 0 6px">Click a post to open it on the canvas and adjust it — your changes are kept.</p>
+      <div class="opts-row" id="monthGrid"></div>
+      <button class="btn sm primary" id="monthZip" style="width:100%;margin-top:8px" title="Every graphic as a PNG named by date, plus captions.txt">Download all (zip)</button>
+      <button class="btn sm" id="monthDrive" style="width:100%;margin-top:6px" hidden title="File every graphic in the Drive folder and show it in the calendar sheet">☁ Save all to Drive</button>
+    </div>
     <div class="sec">
       <h2>Selected</h2>
       <div id="inspector"><p class="hint">Nothing selected. Click a piece of the graphic to adjust it.</p></div>
@@ -1213,6 +1278,7 @@ function keyFromLink(){
 
 // ---------- export ----------
 function filename(size){
+  { const cal = (size == null) && calFilename(); if (cal) return cal; }
   const base = (S.template === 'headline' || S.template === 'event') ? (byId('headline')?.text || 'headline') : S.template === 'review' ? 'featured-review' : 'logo';
   const slug = base.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'graphic';
   const [w,hh] = SIZES[size || S.size];
@@ -1233,7 +1299,7 @@ $('#dlBtn').addEventListener('click', async () => {
     await fontsReady();
     let blob;
     try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here — try picking it again or uploading it.'); return; }
-    saveBlob(blob, filename()); markUsed(); if (tab !== 'search') renderResults();
+    saveBlob(blob, filename()); markUsed(); markPostDone(selectedPost()); if (tab !== 'search') renderResults();
   } finally { btn.disabled = false; btn.textContent = 'Download PNG'; }
 });
 
@@ -1510,6 +1576,837 @@ $('#genTpl').addEventListener('click', e => { const b = e.target.closest('button
 $('#shufPhoto').addEventListener('click', shufflePhoto);
 $('#shufLook').addEventListener('click', shuffleLook);
 
+// ---------- Bakken-Young: the studio adapter ----------
+// What the shared calendar and Clear modules need to know about this studio. There's no
+// calendar for Bakken-Young yet; when its clients.js entry gets a calendar block, the panel
+// appears and each post's hook text fills the headline. Generating options from the calendar
+// needs specsFor/buildOption here (see src/springforth/studio.js for the pattern).
+const STUDIO = {
+  slug: 'bakken-young', name: 'Bakken-Young', filePrefix: 'BakkenYoung',
+  buckets: [],
+  bucketTopics: {},
+  headlineTemplate: 'headline',
+  // blank page: the logo on the current photo, nothing else
+  blank(){ S.template = 'logo'; S.els = []; },
+};
+
+// ---------- the social calendar ----------
+// Karissa's posting schedule lives in a Google Sheet, one tab per month, shared as
+// "anyone with the link can view". The studio reads it straight from the browser through
+// the gviz CSV endpoint, which needs no key and answers with CORS headers.
+//
+// Three things about that endpoint shape this code:
+//   * when the named tab does not exist it silently returns the FIRST sheet rather than an
+//     error, so every month is verified against the dates that come back before it is used;
+//   * it drops fully empty leading rows, so the header row is not where the sheet's own row
+//     numbers say it is. The header row is found by its contents, and the configured column
+//     letters are only a fallback for headers that never made it into the sheet (DATE has no
+//     header text of its own);
+//   * tab names are inconsistent ("September 2026" but "Oct 2026"), so both spellings are
+//     tried and whichever one validates wins.
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_ABBR = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+// Each studio names its own buckets and their dot colours in STUDIO.buckets:
+// [[prefix, label, colour], …] — a bucket matches when its name starts with the prefix.
+const BUCKETS = (typeof STUDIO !== 'undefined' && STUDIO.buckets) || [];
+const CAL = { months:[], cur:null, view:null, state:'idle', note:'', probing:false };
+
+// clients.js is loaded at the end of the body, so this resolves lazily rather than at parse
+// time. A client with no calendar block simply doesn't get the panel.
+function calCfg(){
+  const c = (window.BI_CLIENTS || []).find(x => x.slug === STUDIO.slug);
+  return (c && c.calendar) || null;
+}
+function bucketOf(name){
+  const s = (name || '').toLowerCase();
+  if (!s) return null;
+  return BUCKETS.find(b => s.startsWith(b[0])) || null;
+}
+
+// Google's CSV: quoted fields, doubled quotes inside them, and real newlines inside a field.
+function parseCsv(text){
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+    else if (c !== '\r') cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+const colLetter = (s) => { let n = 0; for (const ch of String(s).toUpperCase()) n = n*26 + (ch.charCodeAt(0)-64); return n-1; };
+const monthKey = (y, m) => y + '-' + m;
+function isoDate(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function tabNames(y, m){ return [MONTHS[m] + ' ' + y, MONTHS[m].slice(0,3) + ' ' + y]; }
+function tabUrl(sheetId, tab){
+  return 'https://docs.google.com/spreadsheets/d/' + sheetId +
+         '/gviz/tq?tqx=out:csv&headers=0&sheet=' + encodeURIComponent(tab);
+}
+// M/D/YY or M/D/YYYY, which is what gviz gives for these cells whether they were typed or
+// came out of a formula.
+function parseDate(s){
+  const m = String(s).trim().match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+  if (!m) return null;
+  let y = +m[3]; if (y < 100) y += 2000;
+  const d = new Date(y, +m[1]-1, +m[2]);
+  return isNaN(d) ? null : d;
+}
+function readTab(text, cfg, y, m){
+  const rows = parseCsv(text);
+  const hdr = rows.findIndex(r => r.some(c => /HOOK\s*TEXT/i.test(c)) && r.some(c => /^\s*POST\s*$/i.test(c)));
+  if (hdr < 0) return null;
+  const head = rows[hdr].map(c => c.trim().toUpperCase());
+  const at = (name, letter) => { const i = head.indexOf(name); return i >= 0 ? i : colLetter(cfg.cols[letter]); };
+  const ci = { week:at('WEEK','week'), day:at('DAY','day'), date:at('DATE','date'),
+               bucket:at('BUCKET','bucket'), hook:at('HOOK TEXT','hook'), post:at('POST','post') };
+  const cell = (r, i) => (i >= 0 && i < r.length ? r[i].trim() : '');
+  // An "x" in HOOK TEXT means this post's graphic carries no headline at all — photo only.
+  // An empty cell just means nobody has written one yet, so the phrase bank suggests one.
+  const markOf = r => /^[x\u2713\u2714]$/i.test(cell(r, ci.hook));
+  const hookOf = r => { const t = cell(r, ci.hook); return markOf(r) || /^[-\u2013\u2014.]$/.test(t) ? '' : t; };
+  const posts = [];
+  for (const r of rows.slice(hdr+1)) {
+    const d = parseDate(cell(r, ci.date));
+    if (!d) continue;
+    posts.push({ date:d, iso:isoDate(d), week:parseInt(cell(r, ci.week), 10) || null, day:cell(r, ci.day),
+                 bucket:cell(r, ci.bucket), hook:hookOf(r), noHead:markOf(r), post:cell(r, ci.post) });
+  }
+  if (!posts.length) return null;
+  // gviz answers a missing tab with the first sheet, so the dates decide whether this really
+  // is the month that was asked for
+  const mine = posts.filter(p => p.date.getFullYear() === y && p.date.getMonth() === m);
+  return mine.length >= posts.length/2 ? mine : null;
+}
+
+// ---------- discovery ----------
+// Every month tab from two back to three ahead is probed at once, both spellings, and the
+// posts are kept. A tab added to the sheet later shows up on the next reload with nothing
+// to change here.
+async function tryMonth(cfg, y, m){
+  const got = await Promise.all(tabNames(y, m).map(async tab => {
+    try {
+      const r = await fetch(tabUrl(cfg.sheetId, tab), { cache:'no-store' });
+      if (!r.ok) return null;
+      const posts = readTab(await r.text(), cfg, y, m);
+      return posts ? { tab, posts } : null;
+    } catch { return null; }
+  }));
+  const hit = got.find(Boolean);
+  if (!hit) return null;
+  hit.posts.sort((a,b) => a.date - b.date);
+  return { y, m, key:monthKey(y,m), label:MONTHS[m] + ' ' + y, tab:hit.tab, posts:hit.posts };
+}
+async function discoverMonths(){
+  const cfg = calCfg(); if (!cfg) return [];
+  const now = new Date();
+  // this month and what's ahead of it; once a month has gone by its tab is done with
+  const want = [];
+  for (let i = 0; i <= 5; i++) { const d = new Date(now.getFullYear(), now.getMonth()+i, 1); want.push([d.getFullYear(), d.getMonth()]); }
+  const found = await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m)));
+  return found.filter(Boolean);
+}
+
+// ---------- the month grid ----------
+// Monday-start weeks. The row labels come from the sheet's own WEEK column rather than being
+// counted here: on a month that opens on a Sunday the sheet skips the stub week, so counting
+// would be one out. Rows without a post take their number from the offset to a row that has one.
+function buildGrid(month){
+  const first = new Date(month.y, month.m, 1);
+  const start = new Date(first);
+  start.setDate(first.getDate() - ((first.getDay()+6) % 7));
+  const rows = [];
+  for (let r = 0; r < 6; r++) {
+    const days = [];
+    for (let c = 0; c < 7; c++) { const d = new Date(start); d.setDate(start.getDate() + r*7 + c); days.push(d); }
+    if (!days.some(d => d.getMonth() === month.m && d.getFullYear() === month.y)) { if (rows.length) break; else continue; }
+    const iso = days.map(isoDate);
+    rows.push({ days, iso, posts: month.posts.filter(p => iso.includes(p.iso)), label:null });
+  }
+  const anchor = rows.findIndex(r => r.posts.some(p => p.week));
+  if (anchor >= 0) {
+    const base = rows[anchor].posts.find(p => p.week).week;
+    rows.forEach((r, i) => { const n = base + (i - anchor); r.label = n > 0 ? n : null; });
+  } else rows.forEach((r, i) => { r.label = i + 1; });
+  return rows;
+}
+function curMonth(){ return CAL.months.find(x => x.key === CAL.cur) || null; }
+function curGrid(){ const m = curMonth(); return m ? (m._grid || (m._grid = buildGrid(m))) : []; }
+function viewPosts(){
+  const m = curMonth(); if (!m || !CAL.view) return [];
+  if (CAL.view.kind === 'day') { const p = m.posts.find(x => x.iso === CAL.view.iso); return p ? [p] : []; }
+  const row = curGrid()[CAL.view.row];
+  return row ? row.posts : [];
+}
+function selectedPost(){
+  const v = viewPosts();
+  if (!v.length) return null;
+  if (CAL.view && CAL.view.kind === 'day') return v[0];
+  return v.find(p => p.iso === CAL.view.used) || null;
+}
+
+// Which posts already have a graphic. Local to this browser for now; phase 2 replaces this
+// with what is actually sitting in the Drive folder.
+let calDone = {};
+function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
+function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
+function doneKey(p){ return (calCfg() || {}).sheetId + '|' + p.iso; }
+function isDone(p){ return !!calDone[doneKey(p)]; }
+function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
+
+// ---------- the headline for a post with no hook text ----------
+// Three things the plain phrase-bank fallback got wrong, all measured against the live sheet:
+//
+//   * the BUCKET column is an explicit label and was being ignored. Guessing the topic from
+//     the caption instead disagreed with it on 37 of 57 posts;
+//   * every caption ends with a call to action ("Message us for tour details", "ask",
+//     "comment"), and the caption matcher is first-rule-wins, so it fired on the CTA rather
+//     than the body — an Inspiring Growth post about growth mindset came out "Now Enrolling!";
+//   * the pick was random, so the same post gave a different headline on every click and a
+//     graphic could not be made again.
+//
+// So: the bucket decides the topic, the caption is only consulted when the bucket is blank
+// and then only its body, and the choice is seeded from the date so a post always suggests
+// the same thing.
+// STUDIO.bucketTopics maps a bucket name to one of the studio's phrase-bank topics.
+function topicForBucket(bucket){
+  const map = STUDIO.bucketTopics || {};
+  for (const part of String(bucket || '').split(/[\/,&]+/)) {
+    const t = map[part.trim().toLowerCase()];
+    if (t) return t;
+  }
+  return null;
+}
+// Cut the caption at its call to action or hashtags, so the topic comes from what the post
+// is about rather than how it signs off.
+function captionBody(txt){
+  const t = String(txt || '');
+  const cut = t.search(/\n\s*(?:\u{1F449}|#)|(?:wondering|curious|want to|ready to|interested|message us|send us|dm us|book a|schedule a|learn more|tour details)/iu);
+  return (cut > 40 ? t.slice(0, cut) : t).trim();
+}
+// A stable pick: same post, same suggestion, every time.
+function seededPick(list, seed){
+  let x = 0;
+  for (const ch of String(seed)) x = (x*31 + ch.charCodeAt(0)) % 2147483647;
+  return list[x % list.length];
+}
+function headlineFor(p){
+  if (p.noHead) return '';
+  if (p.hook) return p.hook;
+  const first = Object.keys(BANK)[0];
+  const topic = topicForBucket(p.bucket) || detectTopic(captionBody(p.post)) || first;
+  const heads = (BANK[topic] && BANK[topic].heads) || BANK[first].heads;
+  return seededPick(heads, p.iso + '|' + topic);
+}
+
+// Choosing a post fills the headline box from its hook text, and falls back to the phrase
+// bank when the sheet has none yet. The box stays editable either way.
+function usePost(iso){
+  const m = curMonth(); if (!m) return;
+  const p = m.posts.find(x => x.iso === iso); if (!p) return;
+  if (p.noHead) {
+    // nothing to write on the page: leave the canvas alone and point at the photo-only options
+    if (CAL.view && CAL.view.kind === 'week' && curGrid()[CAL.view.row]?.iso.includes(iso)) CAL.view.used = iso;
+    else CAL.view = { kind:'day', iso };
+    renderCalendar();
+    toast('No headline for this post (x in the sheet)' + (STUDIO.specsFor ? ' \u2014 press Generate from calendar for photo-only options' : ''));
+    return;
+  }
+  // staying inside the open week just moves the choice along it; anything else is a day view
+  const row = CAL.view && CAL.view.kind === 'week' ? curGrid()[CAL.view.row] : null;
+  if (row && row.iso.includes(iso)) CAL.view.used = iso;
+  else CAL.view = { kind:'day', iso };
+  pushUndo();
+  const head = headlineFor(p);
+  // the studio decides which of its layouts carries a headline; this is the fallback
+  if (STUDIO.applyHeadline) STUDIO.applyHeadline(head);
+  else {
+    if (!byId('headline')) { S.template = STUDIO.headlineTemplate || 'headline'; templateDefaults(); }
+    layout();
+    const el = byId('headline'); if (el) el.text = head;
+  }
+  renderQuickFields(); syncControls(); renderInspector(); render(); persist();
+  renderCalendar();
+}
+
+// e.g. SpringForth_2026-10-05_Mon.png, so a month's graphics sort by date in the Drive folder.
+function postFilename(p){ return STUDIO.filePrefix + '_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png'; }
+function calFilename(){ const p = selectedPost(); return p ? postFilename(p) : null; }
+
+// ---------- where to open ----------
+// The current week's post, or — once the month is winding down and next month's tab is
+// there — next month's first week, which is what Karissa is actually working on by then.
+function openDefault(){
+  const now = new Date(); now.setHours(0,0,0,0);
+  const here = CAL.months.find(x => x.y === now.getFullYear() && x.m === now.getMonth());
+  if (now.getDate() >= 15) {
+    const nx = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    const next = CAL.months.find(x => x.y === nx.getFullYear() && x.m === nx.getMonth());
+    if (next) { CAL.cur = next.key; const g = curGrid(); const row = g.findIndex(r => r.posts.length); CAL.view = { kind:'week', row: row < 0 ? 0 : row }; return; }
+  }
+  const month = here || CAL.months[0];          // if this month has no tab, start at the next one that does
+  if (!month) return;
+  CAL.cur = month.key;
+  const g = curGrid();
+  const row = g.findIndex(r => r.iso.includes(isoDate(now)));
+  if (row >= 0 && g[row].posts.length) {
+    const p = g[row].posts.find(x => x.date >= now) || g[row].posts[0];
+    CAL.view = { kind:'day', iso:p.iso };
+  } else {
+    const nextP = month.posts.find(p => p.date >= now) || month.posts[0];
+    CAL.view = nextP ? { kind:'day', iso:nextP.iso } : { kind:'week', row:0 };
+  }
+}
+
+// ---------- panel ----------
+function renderCalendar(){
+  updateCalGen();
+  const sec = $('#calSec'); if (!sec) return;
+  if (!calCfg()) { sec.hidden = true; return; }
+  sec.hidden = false;
+  const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
+  if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (!CAL.months.length) { status.textContent = 'No month tabs found in the sheet. Type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
+
+  sel.innerHTML = '';
+  for (const m of CAL.months) sel.append(h('option',{value:m.key}, m.label));
+  sel.value = CAL.cur;
+  const i = CAL.months.findIndex(x => x.key === CAL.cur);
+  $('#calPrev').disabled = i <= 0;
+  $('#calNext').disabled = i < 0 || i >= CAL.months.length-1;
+
+  const month = curMonth();
+  const photoOnly = month.posts.filter(p => p.noHead).length;
+  const blank = month.posts.filter(p => !p.hook && !p.noHead).length;
+  status.textContent = month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
+    + (photoOnly ? ' · ' + photoOnly + ' photo only (x)' : '')
+    + (blank ? ' · ' + blank + ' with no hook text yet' : '');
+
+  grid.innerHTML = '';
+  grid.append(h('div',{class:'cg-corner'}, ''));
+  for (const d of DOW) grid.append(h('div',{class:'cg-dow'}, d));
+  const today = isoDate(new Date());
+  curGrid().forEach((row, r) => {
+    const on = CAL.view && CAL.view.kind === 'week' && CAL.view.row === r;
+    grid.append(h('button',{class:'cg-wk','aria-pressed':String(!!on),disabled:!row.posts.length,
+      title:row.posts.length ? 'Show this week’s posts' : 'No posts this week',
+      onclick:()=>{ CAL.view = { kind:'week', row:r }; renderCalendar(); }},
+      row.label ? 'Wk' + row.label : ''));
+    row.days.forEach((d, c) => {
+      const iso = isoDate(d);
+      const p = row.posts.find(x => x.iso === iso);
+      const out = d.getMonth() !== month.m || d.getFullYear() !== month.y;
+      const b = p ? bucketOf(p.bucket) : null;
+      const cls = ['cg-day']; if (out) cls.push('out'); if (p) cls.push('has');
+      if (iso === today) cls.push('today');
+      const on = CAL.view && ((CAL.view.kind === 'day' && CAL.view.iso === iso) ||
+                              (CAL.view.kind === 'week' && CAL.view.row === r && p));
+      const cell = h('button',{class:cls.join(' '),'aria-pressed':String(!!on),disabled:!p,
+        title:p ? (p.bucket || 'Post') + ' — ' + (p.noHead ? 'photo only, no headline' : p.hook || 'no hook text yet') : '',
+        onclick:()=>{ if (p) usePost(iso); }},
+        h('span',{class:'cg-num'}, String(d.getDate())));
+      if (p) cell.append(isDone(p)
+        ? h('span',{class:'cg-tick',title:'Graphic downloaded'}, '✓')
+        : h('span',{class:'cg-dot',style:'background:' + (b ? b[2] : '#8fa3ad')}));
+      grid.append(cell);
+    });
+  });
+
+  const legend = $('#calLegend'); legend.innerHTML = '';
+  for (const [,label,color] of BUCKETS)
+    legend.append(h('span',{class:'cg-key'}, h('i',{style:'background:'+color}), label));
+
+  detail.innerHTML = '';
+  const posts = viewPosts();
+  if (!posts.length) { detail.append(h('p',{class:'hint'}, 'Pick a day with a dot to load that post.')); return; }
+  // In a week view the posts sit side by side as compact cards — the rail is too narrow to
+  // carry two captions at once, so the caption below follows whichever one is chosen.
+  const shown = posts.find(p => p.iso === CAL.view.used) || posts[0];
+  const wrap = h('div',{class:'cd-wrap' + (posts.length > 1 ? ' cd-side' : '')});
+  for (const p of posts) {
+    const b = bucketOf(p.bucket);
+    const loaded = CAL.view.kind === 'day' || CAL.view.used === p.iso;
+    wrap.append(h('button',{class:'cd-card' + (p === shown ? ' on' : ''),onclick:()=>usePost(p.iso),
+      title: loaded ? 'Reload this headline' : 'Load this post'},
+      h('span',{class:'cd-head'},
+        h('b',{}, DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate()),
+        h('span',{class:'cd-bucket',style:b ? 'color:'+b[2] : ''}, p.bucket || '')),
+      h('span',{class:'cd-hook'}, p.noHead ? 'Photo only \u2014 no headline' : p.hook || '\u2014 no hook text yet \u2014'),
+      h('span',{class:'cd-use'}, p.noHead ? 'Photo only' : loaded ? '\u2713 headline loaded' : 'Use this post')));
+  }
+  detail.append(wrap);
+  if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
+    title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
+  if (shown && shown.post) {
+    detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
+      h('button',{class:'btn link',onclick:async()=>{
+        try { await navigator.clipboard.writeText(shown.post); toast('Post text copied'); }
+        catch { toast('Couldn\u2019t copy \u2014 select the text and copy it by hand'); }
+      }}, 'Copy')));
+    detail.append(h('p',{class:'cal-post'}, shown.post));
+  }
+}
+
+// ---------- staying in step with the sheet ----------
+// The sheet is edited while the studio is open, so it is re-read on a timer and whenever the
+// tab comes back to the front. Whatever Karissa is looking at is kept: same month, same day
+// or week, and the headline on the canvas is left alone unless that post's hook text has
+// actually changed in the sheet.
+let calBusy = false, calLastSync = 0;
+function postSig(list){ return list.map(p => p.iso + '\u0001' + p.bucket + '\u0001' + p.hook).join('\u0002'); }
+async function refreshCalendar(reason){
+  if (calBusy || !calCfg()) return;
+  calBusy = true;
+  const btn = $('#calSync'); if (btn) btn.disabled = true;
+  const wasCur = CAL.cur, wasView = CAL.view && Object.assign({}, CAL.view);
+  const before = new Map(CAL.months.map(m => [m.key, postSig(m.posts)]));
+  try {
+    const months = await discoverMonths();
+    if (months.length) {
+      const added = months.filter(m => !before.has(m.key)).map(m => m.label);
+      const changed = months.filter(m => before.has(m.key) && before.get(m.key) !== postSig(m.posts)).map(m => m.label);
+      CAL.months = months; CAL.state = 'ready';
+      if (months.some(m => m.key === wasCur)) { CAL.cur = wasCur; CAL.view = wasView; }
+      else openDefault();
+      // if the post on screen now has hook text in the sheet, take it
+      const p = selectedPost();
+      if (p && p.hook && byId('headline') && byId('headline').text !== p.hook) {
+        byId('headline').text = p.hook; renderQuickFields(); render();
+      }
+      renderCalendar();
+      if (reason === 'manual') toast(added.length || changed.length ? 'Calendar updated' : 'Calendar is up to date');
+      else if (added.length) toast('Calendar: ' + added.join(', ') + ' added');
+      else if (changed.length) toast('Calendar: ' + changed.join(', ') + ' updated');
+    } else if (reason === 'manual') toast('Couldn\u2019t read the calendar just now');
+    calLastSync = Date.now();
+  } catch { if (reason === 'manual') toast('Couldn\u2019t reach the calendar'); }
+  finally { calBusy = false; if (btn) btn.disabled = false; }
+}
+function watchCalendar(){
+  setInterval(() => { if (!document.hidden) refreshCalendar('timer'); }, 5*60*1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - calLastSync > 60*1000) refreshCalendar('focus');
+  });
+}
+
+async function wireCalendar(){
+  if (!window.BI_CLIENTS) await new Promise(r => window.addEventListener('load', r, { once:true }));
+  const cfg = calCfg();
+  if (!cfg) { const sec = $('#calSec'); if (sec) sec.hidden = true; return; }
+  loadCalDone();
+  $('#calOpen').addEventListener('click', () => window.open(cfg.url, '_blank', 'noopener'));
+  $('#calSync').addEventListener('click', () => refreshCalendar('manual'));
+  $('#calMonth').addEventListener('change', e => { CAL.cur = e.target.value; CAL.view = { kind:'week', row:0 }; const g = curGrid(); const r = g.findIndex(x => x.posts.length); CAL.view.row = r < 0 ? 0 : r; renderCalendar(); });
+  const step = (d) => { const i = CAL.months.findIndex(x => x.key === CAL.cur) + d;
+    if (i < 0 || i >= CAL.months.length) return;
+    CAL.cur = CAL.months[i].key; const g = curGrid(); const r = g.findIndex(x => x.posts.length);
+    CAL.view = { kind:'week', row: r < 0 ? 0 : r }; renderCalendar(); };
+  $('#calPrev').addEventListener('click', () => step(-1));
+  $('#calNext').addEventListener('click', () => step(1));
+  CAL.state = 'loading'; renderCalendar();
+  try {
+    CAL.months = await discoverMonths();
+    CAL.state = CAL.months.length ? 'ready' : 'empty';
+  } catch { CAL.state = 'offline'; }
+  if (CAL.state === 'ready') openDefault();
+  calLastSync = Date.now();
+  renderCalendar();
+  watchCalendar();
+}
+
+// Every studio carries this module; it only does anything for a client whose clients.js
+// entry has a calendar block.
+window.addEventListener('load', () => { wireCalendar(); });
+
+// ---------- Generate from the calendar (shared) ----------
+// The calendar post decides the graphic. The studio's adapter supplies the ideas
+// (STUDIO.specsFor) and builds each one on the canvas (STUDIO.buildOption); this module runs
+// the three-option view and the button. A studio without an adapter gets the calendar but
+// not the generate buttons.
+
+// Spread the studio's frames (borders) across a set so no two options share one.
+function frameOrder(){
+  return (STUDIO.frames || []).map(f => ({ f, k: Math.pow(Math.random(), 1/(f.weight || 1)) })).sort((a,b) => b.k - a.k).map(x => x.f);
+}
+function assignFrames(specs){
+  // weighted shuffle, then hand them out in order to the options that don't have one yet
+  const order = frameOrder(); if (!order.length) return;
+  let i = 0;
+  for (const s of specs) {
+    if (s.frame) continue;
+    s.frame = order[i++ % order.length];
+    s.label += ' \u00b7 ' + s.frame.name;
+  }
+}
+
+const CTX = { iso:null, offered:new Set(), options:[], on:-1 };
+function calTarget(){ return selectedPost() || viewPosts()[0] || null; }
+
+async function generateFromPost(){
+  if (genBusy) return;
+  const p = calTarget();
+  if (!p) { toast('Pick a post in the calendar first'); return; }
+  genBusy = true;
+  hideWelcome();
+  const btn = $('#calGen'); if (btn) btn.disabled = true;
+  $('#loading').classList.add('show');
+  try {
+    // the post becomes the selected one, so the download is named after it
+    if (CAL.view && CAL.view.kind === 'week') CAL.view.used = p.iso; else CAL.view = { kind:'day', iso:p.iso };
+    if (CTX.iso !== p.iso) { CTX.iso = p.iso; CTX.offered = new Set(); }
+    pushUndo();
+    const specs = STUDIO.specsFor(p, CTX.offered);
+    assignFrames(specs.slice(0, 3));
+    CTX.options = [];
+    for (const o of specs.slice(0, 3)) {
+      const built = await STUDIO.buildOption(o);
+      built.photos.forEach(id => CTX.offered.add(id));
+      CTX.options.push(built);
+    }
+    currentDraftId = null;
+    applyOption(0, false);
+    renderOptions();
+    renderCalendar();
+    toast('Three options for ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() + ' — pick one under Options for this post');
+  } catch (err) { console.error(err); toast('Couldn’t generate: ' + (err.message || err)); }
+  finally { $('#loading').classList.remove('show'); genBusy = false; updateCalGen(); }
+}
+
+function applyOption(i, undoable = true){
+  const o = CTX.options[i]; if (!o) return;
+  if (undoable) pushUndo();
+  Object.assign(S, clone(o.state)); S.sel = null;
+  IMG.bg = o.bg; IMG.src = o.src ? clone(o.src) : null;
+  CTX.on = i;
+  syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
+  renderOptions();
+}
+
+function renderOptions(){
+  const box = $('#opts'); if (!box) return;
+  box.hidden = !CTX.options.length;
+  const row = $('#optsRow'); row.innerHTML = '';
+  CTX.options.forEach((o, i) => row.append(h('button',{class:'opt','aria-pressed':String(i === CTX.on),
+    title:'Use this one', onclick:()=>applyOption(i)},
+    h('img',{src:o.thumb, alt:''}), h('span',{}, o.label))));
+}
+
+// The calendar button always says which post it will use, so there's no guessing.
+function updateCalGen(){
+  const b = $('#calGen'); if (!b) return;
+  if (!calCfg() || !STUDIO.specsFor) { b.hidden = true; return; }
+  b.hidden = false;
+  const p = calTarget();
+  // options made for one post shouldn't linger once another post is picked
+  if (CTX.options.length && (!p || p.iso !== CTX.iso)) { CTX.options = []; CTX.on = -1; renderOptions(); }
+  b.disabled = !p || genBusy;
+  b.textContent = '\u{1F4C5} Generate from calendar' + (p ? ' \u00b7 ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() : '');
+  b.title = p ? 'Build three graphics matched to this post: ' + (p.bucket || 'post') + ' — ' + (p.noHead ? 'photo only' : p.hook || 'no hook text yet') : 'Pick a post in the calendar first';
+}
+
+$('#calGen').addEventListener('click', generateFromPost);
+$('#optsMore').addEventListener('click', generateFromPost);
+$('#optsClose').addEventListener('click', () => { CTX.options = []; CTX.on = -1; renderOptions(); });
+
+
+// With a calendar, the plain generator becomes the "Random" one beside it.
+window.addEventListener('load', () => {
+  if (!calCfg()) return;
+  const g = $('#genBtn'); if (!g || !STUDIO.specsFor) return;
+  g.classList.remove('gen'); g.textContent = '\u2728 Random';
+  g.title = 'Build a graphic from your own text with a random photo, look and layout \u2014 not tied to the calendar';
+});
+
+// ---------- the whole month at once (shared) ----------
+// One graphic per post in the month on view, built the way "Generate from calendar" builds
+// them, with the layouts and borders mixed across the month and no photo used twice. The set
+// sits in the right rail: click a post to open it on the canvas and tweak it (the change is
+// kept), then download everything as one zip with the captions, or save it all to Drive.
+
+const MONTH = { key:null, label:'', items:[], on:-1 };
+
+function postLabel(p){ return DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate(); }
+
+async function generateMonth(){
+  if (genBusy) return;
+  const m = curMonth();
+  if (!m || !m.posts.length) { toast('No posts in this month yet'); return; }
+  genBusy = true; hideWelcome();
+  const btn = $('#calMonthGen'); btn.disabled = true;
+  $('#loading').classList.add('show');
+  try {
+    pushUndo();
+    const offered = new Set(), items = [];
+    // borders go round in a shuffled order so neighbouring posts don't match
+    const order = frameOrder();
+    let fi = 0;
+    for (let i = 0; i < m.posts.length; i++) {
+      const p = m.posts[i];
+      $('#loading').textContent = 'Building ' + postLabel(p) + ' (' + (i+1) + ' of ' + m.posts.length + ')…';
+      const specs = STUDIO.specsFor(p, offered);
+      if (!specs.length) continue;
+      // mix the layouts across the month: each post takes the next of its own top options
+      const s = Object.assign({}, specs[i % Math.min(3, specs.length)]);
+      if (!s.frame && order.length) s.frame = order[fi++ % order.length];
+      const built = await STUDIO.buildOption(s);
+      built.photos.forEach(id => offered.add(id));
+      items.push({ p, built });
+    }
+    MONTH.key = m.key; MONTH.label = m.label; MONTH.items = items; MONTH.on = -1;
+    CTX.options = []; CTX.on = -1; renderOptions();
+    openMonthItem(0, false);
+    toast(items.length + ' graphics for ' + m.label + ' — click any of them on the right to adjust it');
+  } catch (err) { console.error(err); toast('Couldn’t build the month: ' + (err.message || err)); }
+  finally { $('#loading').classList.remove('show'); $('#loading').textContent = 'Loading photo…'; btn.disabled = false; genBusy = false; updateCalGen(); }
+}
+
+// Whatever is on the canvas belongs to the open post, if it is still that post.
+function keepCurrentInMonth(){
+  const it = MONTH.items[MONTH.on]; if (!it) return;
+  const sel = selectedPost(); if (sel && sel.iso !== it.p.iso) return;
+  it.built = { label: it.built.label, state: JSON.parse(snapshot()), bg: IMG.bg, src: IMG.src ? clone(IMG.src) : null, thumb: thumb(), photos: it.built.photos };
+}
+
+function openMonthItem(i, keep = true){
+  const it = MONTH.items[i]; if (!it) return;
+  if (keep) keepCurrentInMonth();
+  const m = CAL.months.find(x => x.key === MONTH.key);
+  if (m) { CAL.cur = m.key; CAL.view = { kind:'day', iso:it.p.iso }; }
+  Object.assign(S, clone(it.built.state)); S.sel = null;
+  IMG.bg = it.built.bg; IMG.src = it.built.src ? clone(it.built.src) : null;
+  MONTH.on = i; currentDraftId = null;
+  syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas();
+  renderCalendar(); renderMonth();
+}
+
+function renderMonth(){
+  const sec = $('#monthSec'); if (!sec) return;
+  sec.hidden = !MONTH.items.length;
+  if (!MONTH.items.length) return;
+  $('#monthTitle').textContent = MONTH.label;
+  const grid = $('#monthGrid'); grid.innerHTML = '';
+  MONTH.items.forEach((it, i) => grid.append(h('button',{class:'opt','aria-pressed':String(i === MONTH.on),
+    title:(it.p.bucket || 'Post') + ' — ' + (it.p.noHead ? 'photo only' : it.p.hook || 'no hook text'), onclick:()=>openMonthItem(i)},
+    h('img',{src:it.built.thumb, alt:''}), h('span',{}, (isDone(it.p) ? '✓ ' : '') + postLabel(it.p)))));
+  $('#monthDrive').hidden = !driveCfg();
+}
+
+// Paint one item onto an off-screen canvas at full size, then put the canvas back as it was.
+async function renderItem(it){
+  const keepS = JSON.parse(snapshot()), keepBg = IMG.bg, keepSrc = IMG.src;
+  try {
+    Object.assign(S, clone(it.built.state)); S.sel = null;
+    IMG.bg = it.built.bg; IMG.src = it.built.src;
+    return await renderBlob();
+  } finally { Object.assign(S, keepS); IMG.bg = keepBg; IMG.src = keepSrc; }
+}
+
+function captionsText(){
+  return MONTH.items.map(({ p }) => [
+    postLabel(p) + ' · ' + (p.bucket || ''),
+    'Graphic: ' + postFilename(p),
+    p.noHead ? 'Headline: (none — photo only)' : 'Headline: ' + (p.hook || '(from the phrase bank)'),
+    '', p.post || '', '', '----------', ''].join('\n')).join('\n');
+}
+
+async function downloadMonth(){
+  if (!window.JSZip) { toast('The zip helper didn’t load — check the connection and reload.'); return; }
+  keepCurrentInMonth();
+  const btn = $('#monthZip'); btn.disabled = true; btn.textContent = 'Preparing…';
+  try {
+    await fontsReady();
+    const zip = new JSZip();
+    for (const it of MONTH.items) zip.file(postFilename(it.p), await renderItem(it));
+    zip.file('captions.txt', captionsText());
+    saveBlob(await zip.generateAsync({ type:'blob' }), STUDIO.filePrefix + '_' + MONTH.label.replace(/\s+/g, '-') + '.zip');
+    MONTH.items.forEach(it => { calDone[doneKey(it.p)] = Date.now(); }); saveCalDone();
+    renderCalendar(); renderMonth();
+  } catch (err) { console.error(err); toast('Couldn’t make the zip: ' + (err.message || err)); }
+  finally { btn.disabled = false; btn.textContent = 'Download all (zip)'; render(); }
+}
+
+// ---------- Save to Drive ----------
+// Talks to the Apps Script web app in apps-script/ (set up once; its URL goes in clients.js as
+// calendar.driveEndpoint). The team passcode is asked for once and remembered in this browser.
+const DRIVE_PASS_KEY = STUDIO.slug + '-drive-pass';
+function driveCfg(){ const c = calCfg(); return c && c.driveEndpoint ? c : null; }
+function drivePass(ask){
+  let v = ''; try { v = localStorage.getItem(DRIVE_PASS_KEY) || ''; } catch {}
+  if (!v && ask) { v = (prompt('Team passcode for Save to Drive:') || '').trim(); if (v) try { localStorage.setItem(DRIVE_PASS_KEY, v); } catch {} }
+  return v;
+}
+async function drivePost(body, ask = true){
+  const cfg = driveCfg(); if (!cfg) throw new Error('Save to Drive isn’t set up yet');
+  const passcode = drivePass(ask); if (!passcode) throw new Error('No passcode');
+  // text/plain keeps the browser from sending a preflight, which Apps Script can't answer
+  const r = await fetch(cfg.driveEndpoint, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(Object.assign({ passcode }, body)) });
+  const j = await r.json();
+  if (!j.ok && j.error === 'passcode') { try { localStorage.removeItem(DRIVE_PASS_KEY); } catch {} throw new Error('That passcode didn’t work — try again'); }
+  if (!j.ok) throw new Error(j.error || 'Drive said no');
+  return j;
+}
+function blobToBase64(blob){
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+}
+function monthOf(p){ return CAL.months.find(m => m.y === p.date.getFullYear() && m.m === p.date.getMonth()); }
+async function savePostToDrive(p, blob){
+  const cfg = driveCfg(), m = monthOf(p);
+  return drivePost({ action:'save', client:STUDIO.name, month: MONTHS[p.date.getMonth()] + ' ' + p.date.getFullYear(),
+    filename: postFilename(p), png: await blobToBase64(blob),
+    sheetId: cfg.sheetId, tab: m ? m.tab : '', iso: p.iso, dateCol: cfg.cols.date, imageCol: cfg.cols.image });
+}
+
+async function saveCurrentToDrive(){
+  const p = selectedPost();
+  if (!p) { toast('Pick the post this graphic is for in the calendar first'); return; }
+  const btn = $('#driveBtn'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await fontsReady();
+    await savePostToDrive(p, await renderBlob());
+    markPostDone(p); keepCurrentInMonth(); renderMonth();
+    toast('Saved to Drive and added to the calendar for ' + postLabel(p));
+  } catch (err) { toast('Couldn’t save: ' + (err.message || err)); }
+  finally { btn.disabled = false; btn.textContent = '☁ Save to Drive'; }
+}
+
+async function saveMonthToDrive(){
+  keepCurrentInMonth();
+  const btn = $('#monthDrive'); btn.disabled = true;
+  let done = 0;
+  try {
+    await fontsReady();
+    for (const it of MONTH.items) {
+      btn.textContent = 'Saving ' + (done+1) + ' of ' + MONTH.items.length + '…';
+      await savePostToDrive(it.p, await renderItem(it));
+      calDone[doneKey(it.p)] = Date.now(); done++;
+    }
+    saveCalDone();
+    toast('All ' + done + ' graphics are in Drive and on the calendar');
+  } catch (err) { saveCalDone(); toast('Saved ' + done + ', then stopped: ' + (err.message || err)); }
+  finally { btn.disabled = false; btn.textContent = '☁ Save all to Drive'; renderCalendar(); renderMonth(); render(); }
+}
+
+// Checkmarks come from what is actually in the Drive folder, so every browser agrees.
+async function syncDoneFromDrive(){
+  if (!driveCfg() || !drivePass(false)) return;
+  for (const m of CAL.months) {
+    try {
+      const j = await drivePost({ action:'status', client:STUDIO.name, month:m.label }, false);
+      const names = new Set(j.files || []);
+      for (const p of m.posts) if (names.has(postFilename(p))) calDone[doneKey(p)] = calDone[doneKey(p)] || Date.now();
+    } catch { return; }
+  }
+  saveCalDone(); renderCalendar(); renderMonth();
+}
+
+$('#calMonthGen').addEventListener('click', generateMonth);
+$('#monthZip').addEventListener('click', downloadMonth);
+$('#monthDrive').addEventListener('click', saveMonthToDrive);
+$('#monthClose').addEventListener('click', () => { keepCurrentInMonth(); MONTH.items = []; MONTH.on = -1; renderMonth(); });
+$('#driveBtn').addEventListener('click', saveCurrentToDrive);
+(async () => {
+  if (!window.BI_CLIENTS) await new Promise(r => window.addEventListener('load', r, { once:true }));
+  $('#driveBtn').hidden = !driveCfg();
+  $('#calMonthGen').hidden = !STUDIO.specsFor;
+  // wait for the calendar's first read before asking Drive what's already filed
+  for (let i = 0; i < 60 && !['ready','empty','offline'].includes(CAL.state); i++) await new Promise(r => setTimeout(r, 250));
+  syncDoneFromDrive();
+})();
+
+// ---------- Clear (shared) ----------
+// Everything off the page, back to the studio's blank starting point (STUDIO.blank). The
+// calendar selection stays, so the next "Generate from calendar" picks up where you were.
+$('#clearBtn').addEventListener('click', () => {
+  pushUndo();
+  S.sel = null;
+  STUDIO.blank();
+  if (typeof CTX !== 'undefined') { CTX.options = []; CTX.on = -1; renderOptions(); }
+  currentDraftId = null;
+  hideWelcome();
+  templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
+  toast('Cleared \u2014 Undo brings it back');
+});
+
+// ---------- zooming photos (shared) ----------
+// Scroll (or trackpad-pinch) over a framed or collage photo to zoom it inside its frame, or
+// over a full-page photo to zoom the background. One undo step per gesture.
+// a full-page photo: Bakken-Young's background is always one, the others say so in S.bg.kind
+function bgIsPhoto(){ return !!IMG.bg && (!S.bg.kind || S.bg.kind === 'photo'); }
+var cropMode = null;                 // id of the framed photo whose drag pans inside its frame
+let wheelUndoAt = 0;
+cv.addEventListener('wheel', e => {
+  const [x, y] = toDesign(e);
+  const el = hitEl(x, y);
+  const photo = el && el.type === 'image' && typeof cropRoom === 'function' ? el : null;
+  // over text or the logo, the background photo is what zooms
+  if (!photo && !bgIsPhoto()) return;
+  e.preventDefault();
+  if (Date.now() - wheelUndoAt > 600) pushUndo();
+  wheelUndoAt = Date.now();
+  const f = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
+  if (photo) {
+    photo.zoom = Math.max(1, Math.min(4, (photo.zoom || 1) * f));
+    if (S.sel !== photo.id) { S.sel = photo.id; renderInspector(); }
+    const z = $('#insp-zoom'); if (z) z.value = Math.round(photo.zoom*100);
+  } else {
+    S.bg.zoom = Math.max(1, Math.min(3, (S.bg.zoom || 1) * f));
+    $('#zoom').value = Math.round(S.bg.zoom*100);
+  }
+  render();
+}, { passive:false });
+// Double-click a framed photo to switch dragging between moving the frame and moving the
+// photo inside it.
+cv.addEventListener('dblclick', e => {
+  const [x, y] = toDesign(e);
+  const el = hitEl(x, y);
+  if (!el || el.type !== 'image' || typeof cropRoom !== 'function') return;
+  cropMode = cropMode === el.id ? null : el.id;
+  S.sel = el.id; renderInspector(); render();
+  toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
+});
+
+// Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its
+// frame), or the full-page photo. While two fingers are down the ordinary drag stands aside.
+const touches = new Map();
+let pinch = null;
+cv.style.touchAction = 'none';
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size !== 2) return;
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const [mx, my] = toDesign({ clientX:(x1+x2)/2, clientY:(y1+y2)/2 });
+  const el = hitEl(mx, my);
+  const target = el && el.type === 'image' && typeof cropRoom === 'function' ? el : (bgIsPhoto() ? 'bg' : null);
+  if (!target) return;
+  drag = null;                                   // the first finger's drag doesn't get to move things
+  pinch = { target, d0: Math.hypot(x2-x1, y2-y1), z0: target === 'bg' ? (S.bg.zoom || 1) : (target.zoom || 1) };
+  e.stopImmediatePropagation();
+}, true);
+cv.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (!pinch || touches.size < 2) return;
+  e.stopImmediatePropagation();
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const z = pinch.z0 * Math.hypot(x2-x1, y2-y1) / pinch.d0;
+  if (pinch.target === 'bg') { S.bg.zoom = Math.max(1, Math.min(3, z)); $('#zoom').value = Math.round(S.bg.zoom*100); }
+  else { pinch.target.zoom = Math.max(1, Math.min(4, z)); const s = $('#insp-zoom'); if (s) s.value = Math.round(pinch.target.zoom*100); }
+  render();
+}, true);
+const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+cv.addEventListener('pointerup', endTouch, true);
+cv.addEventListener('pointercancel', endTouch, true);
+
 // ---------- misc ----------
 let toastT = 0;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
@@ -1529,7 +2426,7 @@ async function fontsReady(){
 })();
 })();
 </script>
-<script src="../clients.js?v=202610121619"></script>
+<script src="../clients.js?v=202610121648"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {

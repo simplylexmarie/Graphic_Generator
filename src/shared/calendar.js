@@ -15,32 +15,21 @@
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_ABBR = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-// All four come off their own pages. Sky and deep blue were the obvious pair for the first
-// two buckets, but at dot size they are the same colour, so Equipping takes the green from
-// the pushpin on their cork-board quotes instead.
-const BUCKETS = [
-  ['inspiring', 'Inspiring Growth', '#1cc1e0'],
-  ['equipping', 'Equipping',        '#02d594'],
-  ['community', 'Community',        '#ffc000'],
-  ['enroll',    'Enrollment',       '#bb8a2d'],
-];
+// Each studio names its own buckets and their dot colours in STUDIO.buckets:
+// [[prefix, label, colour], …] — a bucket matches when its name starts with the prefix.
+const BUCKETS = (typeof STUDIO !== 'undefined' && STUDIO.buckets) || [];
 const CAL = { months:[], cur:null, view:null, state:'idle', note:'', probing:false };
-const CLIENT_SLUG = 'springforth';
 
 // clients.js is loaded at the end of the body, so this resolves lazily rather than at parse
 // time. A client with no calendar block simply doesn't get the panel.
 function calCfg(){
-  const c = (window.BI_CLIENTS || []).find(x => x.slug === CLIENT_SLUG);
+  const c = (window.BI_CLIENTS || []).find(x => x.slug === STUDIO.slug);
   return (c && c.calendar) || null;
 }
 function bucketOf(name){
   const s = (name || '').toLowerCase();
   if (!s) return null;
-  if (s.startsWith('inspir')) return BUCKETS[0];
-  if (s.startsWith('equip')) return BUCKETS[1];
-  if (s.startsWith('commun')) return BUCKETS[2];
-  if (s.startsWith('enroll')) return BUCKETS[3];   // their sheet also spells it "Enrollement"
-  return null;
+  return BUCKETS.find(b => s.startsWith(b[0])) || null;
 }
 
 // Google's CSV: quoted fields, doubled quotes inside them, and real newlines inside a field.
@@ -174,8 +163,8 @@ function selectedPost(){
 // Which posts already have a graphic. Local to this browser for now; phase 2 replaces this
 // with what is actually sitting in the Drive folder.
 let calDone = {};
-function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar) || '{}') || {}; } catch { calDone = {}; } }
-function saveCalDone(){ try { localStorage.setItem(LS.calendar, JSON.stringify(calDone)); } catch {} }
+function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
+function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
 function doneKey(p){ return (calCfg() || {}).sheetId + '|' + p.iso; }
 function isDone(p){ return !!calDone[doneKey(p)]; }
 function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
@@ -194,11 +183,11 @@ function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); save
 // So: the bucket decides the topic, the caption is only consulted when the bucket is blank
 // and then only its body, and the choice is seeded from the date so a post always suggests
 // the same thing.
-const BUCKET_TOPIC = { 'inspiring growth':'values', 'equipping':'philosophy',
-                       'community':'community', 'enrollment':'enroll', 'enrollement':'enroll' };
+// STUDIO.bucketTopics maps a bucket name to one of the studio's phrase-bank topics.
 function topicForBucket(bucket){
+  const map = STUDIO.bucketTopics || {};
   for (const part of String(bucket || '').split(/[\/,&]+/)) {
-    const t = BUCKET_TOPIC[part.trim().toLowerCase()];
+    const t = map[part.trim().toLowerCase()];
     if (t) return t;
   }
   return null;
@@ -219,8 +208,9 @@ function seededPick(list, seed){
 function headlineFor(p){
   if (p.noHead) return '';
   if (p.hook) return p.hook;
-  const topic = topicForBucket(p.bucket) || detectTopic(captionBody(p.post)) || 'values';
-  const heads = (BANK[topic] && BANK[topic].heads) || BANK.values.heads;
+  const first = Object.keys(BANK)[0];
+  const topic = topicForBucket(p.bucket) || detectTopic(captionBody(p.post)) || first;
+  const heads = (BANK[topic] && BANK[topic].heads) || BANK[first].heads;
   return seededPick(heads, p.iso + '|' + topic);
 }
 
@@ -234,7 +224,7 @@ function usePost(iso){
     if (CAL.view && CAL.view.kind === 'week' && curGrid()[CAL.view.row]?.iso.includes(iso)) CAL.view.used = iso;
     else CAL.view = { kind:'day', iso };
     renderCalendar();
-    toast('No headline for this post (x in the sheet) \u2014 press Generate from calendar for photo-only options');
+    toast('No headline for this post (x in the sheet)' + (STUDIO.specsFor ? ' \u2014 press Generate from calendar for photo-only options' : ''));
     return;
   }
   // staying inside the open week just moves the choice along it; anything else is a day view
@@ -243,20 +233,20 @@ function usePost(iso){
   else CAL.view = { kind:'day', iso };
   pushUndo();
   const head = headlineFor(p);
-  if (S.template === 'logo' || S.template === 'photo') { S.template = 'note'; templateDefaults(); }
-  layout();
-  const el = byId('headline');
-  if (el) el.text = head;
-  else { S.template = 'note'; templateDefaults(); layout(); const e2 = byId('headline'); if (e2) e2.text = head; }
+  // the studio decides which of its layouts carries a headline; this is the fallback
+  if (STUDIO.applyHeadline) STUDIO.applyHeadline(head);
+  else {
+    if (!byId('headline')) { S.template = STUDIO.headlineTemplate || 'headline'; templateDefaults(); }
+    layout();
+    const el = byId('headline'); if (el) el.text = head;
+  }
   renderQuickFields(); syncControls(); renderInspector(); render(); persist();
   renderCalendar();
 }
 
-// SpringForth_2026-10-05_Mon.png, so a month's graphics sort by date in the Drive folder.
-function calFilename(){
-  const p = selectedPost(); if (!p) return null;
-  return 'SpringForth_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png';
-}
+// e.g. SpringForth_2026-10-05_Mon.png, so a month's graphics sort by date in the Drive folder.
+function postFilename(p){ return STUDIO.filePrefix + '_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png'; }
+function calFilename(){ const p = selectedPost(); return p ? postFilename(p) : null; }
 
 // ---------- where to open ----------
 // The current week's post, or — once the month is winding down and next month's tab is
@@ -361,7 +351,7 @@ function renderCalendar(){
       h('span',{class:'cd-use'}, p.noHead ? 'Photo only' : loaded ? '\u2713 headline loaded' : 'Use this post')));
   }
   detail.append(wrap);
-  detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
+  if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
     title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
   if (shown && shown.post) {
     detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
@@ -439,3 +429,7 @@ async function wireCalendar(){
   renderCalendar();
   watchCalendar();
 }
+
+// Every studio carries this module; it only does anything for a client whose clients.js
+// entry has a calendar block.
+window.addEventListener('load', () => { wireCalendar(); });

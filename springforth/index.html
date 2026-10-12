@@ -84,43 +84,6 @@ input[type=color]{width:34px;height:28px;padding:0;border:1px solid var(--line-s
 .stickers button{border:1px solid var(--line);border-radius:7px;background:var(--panel-2);padding:5px;cursor:pointer;height:50px;min-width:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .stickers button:hover{border-color:var(--accent);background:var(--accent-soft)}
 .stickers img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}
-.cal-nav{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
-.cal-nav select{width:100%}
-.cal-nav .btn[disabled]{opacity:.35;cursor:default}
-.cal-grid{display:grid;grid-template-columns:auto repeat(7,minmax(0,1fr));gap:2px;margin:6px 0}
-.cg-corner,.cg-dow{font-size:9px;opacity:.55;text-align:center;padding:2px 0;letter-spacing:.02em}
-.cg-wk{font:inherit;font-size:9px;font-weight:700;opacity:.7;background:none;border:0;color:inherit;cursor:pointer;padding:0 3px 0 0;border-radius:5px}
-.cg-wk:disabled{opacity:.25;cursor:default}
-.cg-wk[aria-pressed="true"]{opacity:1;color:var(--accent)}
-.cg-day{position:relative;font:inherit;border:1px solid transparent;border-radius:6px;background:none;color:inherit;aspect-ratio:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:default}
-.cg-day.out .cg-num{opacity:.28}
-.cg-num{font-size:10px;line-height:1}
-.cg-day.today{border-color:var(--line-strong)}
-.cg-day.has{cursor:pointer;background:var(--panel-2)}
-.cg-day.has:hover{border-color:var(--accent)}
-.cg-day[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
-.cg-dot{width:6px;height:6px;border-radius:50%;display:block}
-.cg-tick{font-size:9px;line-height:1;color:var(--accent);font-weight:700}
-.cal-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:9px;opacity:.75;margin-bottom:8px}
-.cg-key{display:inline-flex;align-items:center;gap:4px}
-.cg-key i{width:6px;height:6px;border-radius:50%;display:block}
-.cd-wrap{display:flex;flex-direction:column;gap:8px}
-.cd-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px}
-.cd-card{font:inherit;color:inherit;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:7px;display:flex;flex-direction:column;gap:4px;min-width:0;cursor:pointer}
-.cd-card:hover{border-color:var(--accent)}
-.cd-card.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.cd-use{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
-.cd-head{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:11px;flex-wrap:wrap}
-.cd-bucket{font-size:9px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;text-align:right}
-.cd-hook{font-size:12px;line-height:1.35}
-.cd-gen{width:100%;margin-top:8px}
-.opts-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.opt{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
-.opt:hover{border-color:var(--accent)}
-.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
-.opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}
-.opt span{font-size:11px;opacity:.8}
-.cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
 .tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
 .seg{display:flex;border:1px solid var(--line-strong);border-radius:7px;overflow:hidden}
 .seg button{flex:1;padding:6px 4px;border:0;background:var(--panel);cursor:pointer;font-size:12px}
@@ -216,6 +179,43 @@ canvas#c.dragging{cursor:grabbing}
   .canvas-wrap{padding:8px}
 }
 @media (prefers-reduced-motion:reduce){.toast{transition:none}.res .star{transition:none}}
+.cal-nav{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.cal-nav select{width:100%}
+.cal-nav .btn[disabled]{opacity:.35;cursor:default}
+.cal-grid{display:grid;grid-template-columns:auto repeat(7,minmax(0,1fr));gap:2px;margin:6px 0}
+.cg-corner,.cg-dow{font-size:9px;opacity:.55;text-align:center;padding:2px 0;letter-spacing:.02em}
+.cg-wk{font:inherit;font-size:9px;font-weight:700;opacity:.7;background:none;border:0;color:inherit;cursor:pointer;padding:0 3px 0 0;border-radius:5px}
+.cg-wk:disabled{opacity:.25;cursor:default}
+.cg-wk[aria-pressed="true"]{opacity:1;color:var(--accent)}
+.cg-day{position:relative;font:inherit;border:1px solid transparent;border-radius:6px;background:none;color:inherit;aspect-ratio:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:default}
+.cg-day.out .cg-num{opacity:.28}
+.cg-num{font-size:10px;line-height:1}
+.cg-day.today{border-color:var(--line-strong)}
+.cg-day.has{cursor:pointer;background:var(--panel-2)}
+.cg-day.has:hover{border-color:var(--accent)}
+.cg-day[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.cg-dot{width:6px;height:6px;border-radius:50%;display:block}
+.cg-tick{font-size:9px;line-height:1;color:var(--accent);font-weight:700}
+.cal-legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:9px;opacity:.75;margin-bottom:8px}
+.cg-key{display:inline-flex;align-items:center;gap:4px}
+.cg-key i{width:6px;height:6px;border-radius:50%;display:block}
+.cd-wrap{display:flex;flex-direction:column;gap:8px}
+.cd-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px}
+.cd-card{font:inherit;color:inherit;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:7px;display:flex;flex-direction:column;gap:4px;min-width:0;cursor:pointer}
+.cd-card:hover{border-color:var(--accent)}
+.cd-card.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cd-use{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
+.cd-head{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:11px;flex-wrap:wrap}
+.cd-bucket{font-size:9px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;text-align:right}
+.cd-hook{font-size:12px;line-height:1.35}
+.cd-gen{width:100%;margin-top:8px}
+.opts-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.opt{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.opt:hover{border-color:var(--accent)}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}
+.opt span{font-size:11px;opacity:.8}
+.cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
 </style>
 </head>
 <body>
@@ -358,8 +358,8 @@ canvas#c.dragging{cursor:grabbing}
     <div class="toolbar">
       <span class="hint">Click anything on the graphic to select it. Drag to move · corners to resize · <span class="kbd">←↑↓→</span> nudge · <span class="kbd">⌫</span> remove</span>
       <span class="spacer"></span>
-      <button class="btn sm gen" id="calGen" disabled title="Pick a post in the calendar first">📅 Generate from calendar</button>
-      <button class="btn sm" id="genBtn" title="Build a graphic from your own text with a random photo, look and layout — not tied to the calendar">✨ Random</button>
+      <button class="btn sm gen" id="calGen" hidden disabled title="Pick a post in the calendar first">📅 Generate from calendar</button>
+      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>
       <button class="btn sm" id="shufPhoto" title="Keep the text, try a different background">Shuffle background</button>
       <button class="btn sm" id="shufLook" title="Keep the photo, try a different look and layout">Shuffle look</button>
       <button class="btn sm" id="collageQuick" title="Generate a photo collage">⊞ Collage</button>
@@ -1748,11 +1748,10 @@ function restore(){
 }
 // ---------- export ----------
 function filename(size){
+  { const cal = (size == null) && calFilename(); if (cal) return cal; }
   const base = byId('headline')?.text || (S.template === 'quote' ? 'parent-quote' : S.template === 'collage' ? 'collage' : S.template);
   const slug = base.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'graphic';
   const [w,hh] = SIZES[size || S.size];
-  // a graphic made for a calendar post is named after it, so a month’s files sort by date
-  const cal = (size == null) && calFilename(); if (cal) return cal;
   return `springforth-${slug}-${w}x${hh}.png`;
 }
 function renderBlob(){
@@ -2060,6 +2059,196 @@ $('#genText').addEventListener('keydown', e => { if ((e.metaKey||e.ctrlKey) && e
 $('#genTpl').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; document.querySelectorAll('#genTpl button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
 $('#shufPhoto').addEventListener('click', shufflePhoto);
 $('#shufLook').addEventListener('click', shuffleLook);
+// ---------- Spring Forth: the studio adapter ----------
+// What the shared calendar, options, month and Clear modules need to know about this studio.
+const STUDIO = {
+  slug: 'springforth', name: 'Spring Forth', filePrefix: 'SpringForth',
+  // All four come off their own pages. Sky and deep blue were the obvious pair for the first
+  // two buckets, but at dot size they are the same colour, so Equipping takes the green from
+  // the pushpin on their cork-board quotes instead. ("enroll" also catches "Enrollement".)
+  buckets: [
+    ['inspir', 'Inspiring Growth', '#1cc1e0'],
+    ['equip',  'Equipping',        '#02d594'],
+    ['commun', 'Community',        '#ffc000'],
+    ['enroll', 'Enrollment',       '#bb8a2d'],
+  ],
+  bucketTopics: { 'inspiring growth':'values', 'equipping':'philosophy', 'community':'community', 'enrollment':'enroll', 'enrollement':'enroll' },
+  // a headline lands on a note card when the page is a bare photo
+  applyHeadline(head){
+    if (S.template === 'logo' || S.template === 'photo') { S.template = 'note'; templateDefaults(); }
+    layout();
+    const el = byId('headline');
+    if (el) el.text = head;
+    else { S.template = 'note'; templateDefaults(); layout(); const e2 = byId('headline'); if (e2) e2.text = head; }
+  },
+  // blank page: the paper and the wave frame. The photo stays loaded (just not shown on paper)
+  // so Undo brings the graphic back whole.
+  blank(){
+    S.template = 'logo'; S.els = [];
+    S.bg.kind = 'paper'; S.bg.ground = 'paper'; S.bg.cells = null; S.bg.dim = 0;
+    IMG.src = { kind:'ground', ground:'paper' };
+  },
+  get frames(){ return FRAMES; },
+  specsFor: (p, offered) => specsFor(p, offered),
+  buildOption: o => buildOption(o),
+};
+
+// Words in a post → photo tags (from springforth/library/manifest.json). Earlier tags in each
+// row weigh a little more than later ones.
+const CONTEXT_TAGS = [
+  [/\bmath|number|fraction|multiplic|bad at|mess (?:this |it )?up|mistake|homework|worksheet|study|practice|do it later|procrastinat|struggl|work through|focus|concentrat/, ['schoolwork','focus','math','writing']],
+  [/\bread|\bbooks?\b|stor(?:y|ies)|librar|\bdear\b|drop everything/, ['reading','focus']],
+  [/\bwrit|journal|essay|spelling/, ['writing','schoolwork']],
+  [/monster|hero|courage|brave|grit|growth|mindset|i can\b|persever|resilien|challeng/, ['hero','schoolwork','focus','challenge','growth']],
+  [/\bbuil|creat|project|design|cardboard|engineer|invent/, ['building','project','hands-on']],
+  [/scien|experiment|discover/, ['science','experiment','hands-on']],
+  [/\bart\b|paint|draw|creativ/, ['art','creative']],
+  [/chess|strateg|\bgames?\b/, ['chess','games','thinking']],
+  [/exhibit|present|showcase|carnival|booth|entrepreneur|business|market/, ['exhibition','presenting','project']],
+  [/parent|famil|\bmom|\bdad|at home|grandparent/, ['parents','family']],
+  [/communit|together|friend|\bkind(?!\s+of)|help|belong|tribe|village/, ['community','friends','kindness','together']],
+  [/outside|outdoor|nature|recess|\bfield\b|\bplay|fresh air|explor/, ['outdoor','play','nature']],
+  [/field trip|\btrip\b|adventure|outing/, ['field-trip','fun']],
+  [/enroll|\btours?\b|visit|open house|join us|apply|spots|new families/, ['whole-school','welcome','community']],
+  [/leader|\blead\b|discussion|socratic|question|circle|debate|voice/, ['discussion','leadership','presenting']],
+  [/feedback|encourag|praise/, ['feedback','discussion']],
+  [/back to school|new year|welcome|first day|another year|celebrat|wraps? up/, ['celebration','whole-school','smiling']],
+  [/sparks|youngest|little ones|kinder/, ['younger']],
+  [/\bteens?\b|middle school|older learners/, ['older']],
+  [/real.?world|real life|life skill|first aid|cook/, ['real-world','hands-on']],
+];
+const BUCKET_TAGS = {
+  'inspiring growth':['schoolwork','focus','growth','hero'],
+  'equipping':['parents','schoolwork','discussion'],
+  'community':['community','parents','group','friends'],
+  'enrollment':['whole-school','welcome','community','exhibition'],
+  'enrollement':['whole-school','welcome','community','exhibition'],
+};
+
+function contextWants(p){
+  const want = {};
+  const add = (tags, w) => tags.forEach((t, i) => { want[t] = (want[t] || 0) + w - i*0.25; });
+  const txt = ((p.hook || '') + ' ' + captionBody(p.post)).toLowerCase();
+  for (const [re, tags] of CONTEXT_TAGS) if (re.test(txt)) add(tags, 3);
+  for (const part of String(p.bucket || '').split(/[\/,&]+/)) {
+    // an enrollment post is about the school as a whole, whatever its caption mentions
+    const key = part.trim().toLowerCase(), tags = BUCKET_TAGS[key];
+    if (tags) add(tags, /^enroll/.test(key) ? 4 : 1.5);
+  }
+  return want;
+}
+// Best match first, one photo per shoot (no two crops of the same moment). Photos already
+// offered for this post sink to the bottom rather than vanish, so a small library never runs dry.
+function rankPhotos(p, offered){
+  const want = contextWants(p);
+  const scored = LIB.map(ph => {
+    let s = 0;
+    for (const t of ph.tags) s += want[t] || 0;
+    if (ph.tags.includes('weak')) s -= 4;
+    if (photoMem.used[ph.id]) s -= 0.6;
+    if (offered.has(ph.id)) s -= 100;
+    return { ph, s: s + Math.random()*0.9 };
+  }).sort((a, b) => b.s - a.s);
+  const seen = new Set(), out = [];
+  for (const { ph } of scored) { if (seen.has(ph.group)) continue; seen.add(ph.group); out.push(ph); }
+  return out;
+}
+
+// A bulleted run in the caption ("- “I’m just bad at math,”") becomes the three-card list,
+// headed by the line that introduces it.
+function captionList(post){
+  const lines = String(post || '').split('\n');
+  const first = lines.findIndex(l => /^\s*(?:[-•–*]|\d+[.)])\s+\S/.test(l));
+  if (first < 0) return null;
+  const items = [];
+  for (const l of lines.slice(first)) {
+    const m = l.match(/^\s*(?:[-•–*]|\d+[.)])\s+(.+)/);
+    if (!m) { if (items.length && l.trim()) break; continue; }
+    // drop the sentence glue the caption hangs between bullets: a trailing ", or" / "and" / comma
+    const t = m[1].trim().replace(/[,;]?\s+(?:or|and)\s*$/i, '').replace(/[,;]+$/, '').replace(/[,;](”|")$/, '$1');
+    if (t.length <= 70) items.push(t);
+  }
+  if (items.length < 2) return null;
+  let head = '';
+  for (let i = first - 1; i >= 0 && !head; i--) head = lines[i].trim();
+  head = head.length && head.length <= 70 ? head.replace(/[,.:;]?$/, ':') : 'Sound familiar?';
+  return { headline: head, items: items.slice(0, 3) };
+}
+// A parent's words in quotation marks become the cork-board quote.
+function captionQuote(post){
+  const t = String(post || '');
+  const q = (t.match(/[“"]([^”"]{30,260})[”"]/) || [])[1];
+  if (!q) return null;
+  const leads = /^\s*[“"]/.test(t);
+  if (!leads && !/parent|mom|dad|family|our (?:kids|children)|my (?:child|son|daughter)/i.test(t)) return null;
+  return { quote: '“' + q.trim() + '”', attr: '— a Spring Forth parent' };
+}
+
+// Build one complete graphic into S/IMG and hand back what's needed to put it back later.
+async function buildOption(o){
+  S.template = o.template; S.els = []; S.bg.cells = null;
+  // frame: one of FRAMES below, or 'none' for a bare photo (the badge layout)
+  const fr = o.frame && o.frame !== 'none' ? o.frame : null;
+  S.waveStyle = fr ? fr.style : 'a';
+  S.wave = o.frame === 'none' ? 'none' : fr ? fr.wave : 'both';
+  if (o.headline != null && o.template !== 'quote') S.els.push(text('headline', o.headline));
+  if (o.template === 'quote') { S.els.push(text('quote', o.quote)); S.els.push(text('attr', o.attr)); }
+  if (o.template === 'list') (o.items || []).forEach((t, i) => S.els.push(text('item-' + (i+1), t)));
+  if (o.template === 'photo' || o.template === 'logo') {
+    S.bg.seed = Math.floor(Math.random()*100000) + 1; S.bg.zoom = 1; S.bg.ox = S.bg.oy = 0;
+    IMG.bg = await libImage(o.photo.url); IMG.src = Object.assign({ kind:'lib' }, o.photo); S.bg.kind = 'photo';
+  } else if (o.template === 'collage') {
+    await makeCollage('all', o.photos);
+  } else {
+    await randomBackground(o.template);
+  }
+  randomStyle();
+  if (o.template === 'headline') { addPhoto(o.photo, await libImage(o.photo.url)); }
+  if (o.badge) placeBadge('badge-now-enrolling');
+  return { label: o.label, state: JSON.parse(snapshot()), bg: IMG.bg, src: IMG.src ? clone(IMG.src) : null, thumb: thumb(),
+           photos: o.photo ? [o.photo.id] : (o.photos || []).map(x => x.id) };
+}
+
+// Their posts use several borders, not just the blue wave, so the three options each get a
+// different one: never the same twice in a set, and the full blue wave at most once.
+const FRAMES = [
+  { name:'blue wave',        style:'a', wave:'both',   weight:3 },
+  { name:'bottom wave',      style:'a', wave:'bottom', weight:3 },
+  { name:'white footer',     style:'c', wave:'bottom', weight:3 },
+  { name:'plain wave',       style:'b', wave:'both',   weight:1 },
+];
+// The options a post gets, best first: what the month batch and the three-option view share.
+function specsFor(p, offered){
+  const head = headlineFor(p);
+  const ranked = rankPhotos(p, offered);
+  const list = captionList(p.post), quote = captionQuote(p.post);
+  const bucket = String(p.bucket || '').toLowerCase();
+  const specs = [];
+  if (p.noHead && ranked.length) {
+    // x in HOOK TEXT: the picture is the post — full photos in the frame, and a collage
+    specs.push({ label:'Photo only', template:'logo', photo:ranked[0] });
+    if (ranked[1]) specs.push(/enroll/.test(bucket)
+      ? { label:'Enrolling badge', template:'logo', photo:ranked[1], frame:'none', badge:true }
+      : { label:'Photo only', template:'logo', photo:ranked[1] });
+    if (ranked.length >= 5) specs.push({ label:'Collage', template:'collage', photos:ranked.slice(2, 6) });
+    else if (ranked[2]) specs.push({ label:'Photo only', template:'logo', photo:ranked[2] });
+  } else if (ranked.length) {
+    specs.push({ label:'Photo + headline', template:'headline', headline:head, photo:ranked[0] });
+    // enrollment posts get the full photo with their Now Enrolling badge
+    if (ranked[1]) specs.push(/enroll/.test(bucket)
+      ? { label:'Enrolling badge', template:'photo', headline:head, photo:ranked[1], frame:'none', badge:true }
+      : { label:'Full photo', template:'photo', headline:head, photo:ranked[1] });
+  }
+  if (p.noHead) { /* no writing on the page, so no list, quote or note card */ }
+  else if (list) specs.push({ label:'List card', template:'list', headline:list.headline, items:list.items });
+  else if (quote) specs.push({ label:'Parent quote', template:'quote', quote:quote.quote, attr:quote.attr });
+  else if (/community|enroll/.test(bucket) && ranked.length >= 5) specs.push({ label:'Collage', template:'collage', headline:head, photos:ranked.slice(2, 6) });
+  else specs.push({ label:'Note card', template:'note', headline:head });
+  if (!p.noHead && specs.length < 3 && ranked[2]) specs.splice(1, 0, { label:'Photo + headline', template:'headline', headline:head, photo:ranked[2] });
+  return specs;
+}
+
+
 // ---------- the social calendar ----------
 // Karissa's posting schedule lives in a Google Sheet, one tab per month, shared as
 // "anyone with the link can view". The studio reads it straight from the browser through
@@ -2077,32 +2266,21 @@ $('#shufLook').addEventListener('click', shuffleLook);
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_ABBR = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-// All four come off their own pages. Sky and deep blue were the obvious pair for the first
-// two buckets, but at dot size they are the same colour, so Equipping takes the green from
-// the pushpin on their cork-board quotes instead.
-const BUCKETS = [
-  ['inspiring', 'Inspiring Growth', '#1cc1e0'],
-  ['equipping', 'Equipping',        '#02d594'],
-  ['community', 'Community',        '#ffc000'],
-  ['enroll',    'Enrollment',       '#bb8a2d'],
-];
+// Each studio names its own buckets and their dot colours in STUDIO.buckets:
+// [[prefix, label, colour], …] — a bucket matches when its name starts with the prefix.
+const BUCKETS = (typeof STUDIO !== 'undefined' && STUDIO.buckets) || [];
 const CAL = { months:[], cur:null, view:null, state:'idle', note:'', probing:false };
-const CLIENT_SLUG = 'springforth';
 
 // clients.js is loaded at the end of the body, so this resolves lazily rather than at parse
 // time. A client with no calendar block simply doesn't get the panel.
 function calCfg(){
-  const c = (window.BI_CLIENTS || []).find(x => x.slug === CLIENT_SLUG);
+  const c = (window.BI_CLIENTS || []).find(x => x.slug === STUDIO.slug);
   return (c && c.calendar) || null;
 }
 function bucketOf(name){
   const s = (name || '').toLowerCase();
   if (!s) return null;
-  if (s.startsWith('inspir')) return BUCKETS[0];
-  if (s.startsWith('equip')) return BUCKETS[1];
-  if (s.startsWith('commun')) return BUCKETS[2];
-  if (s.startsWith('enroll')) return BUCKETS[3];   // their sheet also spells it "Enrollement"
-  return null;
+  return BUCKETS.find(b => s.startsWith(b[0])) || null;
 }
 
 // Google's CSV: quoted fields, doubled quotes inside them, and real newlines inside a field.
@@ -2236,8 +2414,8 @@ function selectedPost(){
 // Which posts already have a graphic. Local to this browser for now; phase 2 replaces this
 // with what is actually sitting in the Drive folder.
 let calDone = {};
-function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar) || '{}') || {}; } catch { calDone = {}; } }
-function saveCalDone(){ try { localStorage.setItem(LS.calendar, JSON.stringify(calDone)); } catch {} }
+function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
+function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
 function doneKey(p){ return (calCfg() || {}).sheetId + '|' + p.iso; }
 function isDone(p){ return !!calDone[doneKey(p)]; }
 function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
@@ -2256,11 +2434,11 @@ function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); save
 // So: the bucket decides the topic, the caption is only consulted when the bucket is blank
 // and then only its body, and the choice is seeded from the date so a post always suggests
 // the same thing.
-const BUCKET_TOPIC = { 'inspiring growth':'values', 'equipping':'philosophy',
-                       'community':'community', 'enrollment':'enroll', 'enrollement':'enroll' };
+// STUDIO.bucketTopics maps a bucket name to one of the studio's phrase-bank topics.
 function topicForBucket(bucket){
+  const map = STUDIO.bucketTopics || {};
   for (const part of String(bucket || '').split(/[\/,&]+/)) {
-    const t = BUCKET_TOPIC[part.trim().toLowerCase()];
+    const t = map[part.trim().toLowerCase()];
     if (t) return t;
   }
   return null;
@@ -2281,8 +2459,9 @@ function seededPick(list, seed){
 function headlineFor(p){
   if (p.noHead) return '';
   if (p.hook) return p.hook;
-  const topic = topicForBucket(p.bucket) || detectTopic(captionBody(p.post)) || 'values';
-  const heads = (BANK[topic] && BANK[topic].heads) || BANK.values.heads;
+  const first = Object.keys(BANK)[0];
+  const topic = topicForBucket(p.bucket) || detectTopic(captionBody(p.post)) || first;
+  const heads = (BANK[topic] && BANK[topic].heads) || BANK[first].heads;
   return seededPick(heads, p.iso + '|' + topic);
 }
 
@@ -2296,7 +2475,7 @@ function usePost(iso){
     if (CAL.view && CAL.view.kind === 'week' && curGrid()[CAL.view.row]?.iso.includes(iso)) CAL.view.used = iso;
     else CAL.view = { kind:'day', iso };
     renderCalendar();
-    toast('No headline for this post (x in the sheet) \u2014 press Generate from calendar for photo-only options');
+    toast('No headline for this post (x in the sheet)' + (STUDIO.specsFor ? ' \u2014 press Generate from calendar for photo-only options' : ''));
     return;
   }
   // staying inside the open week just moves the choice along it; anything else is a day view
@@ -2305,20 +2484,20 @@ function usePost(iso){
   else CAL.view = { kind:'day', iso };
   pushUndo();
   const head = headlineFor(p);
-  if (S.template === 'logo' || S.template === 'photo') { S.template = 'note'; templateDefaults(); }
-  layout();
-  const el = byId('headline');
-  if (el) el.text = head;
-  else { S.template = 'note'; templateDefaults(); layout(); const e2 = byId('headline'); if (e2) e2.text = head; }
+  // the studio decides which of its layouts carries a headline; this is the fallback
+  if (STUDIO.applyHeadline) STUDIO.applyHeadline(head);
+  else {
+    if (!byId('headline')) { S.template = STUDIO.headlineTemplate || 'headline'; templateDefaults(); }
+    layout();
+    const el = byId('headline'); if (el) el.text = head;
+  }
   renderQuickFields(); syncControls(); renderInspector(); render(); persist();
   renderCalendar();
 }
 
-// SpringForth_2026-10-05_Mon.png, so a month's graphics sort by date in the Drive folder.
-function calFilename(){
-  const p = selectedPost(); if (!p) return null;
-  return 'SpringForth_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png';
-}
+// e.g. SpringForth_2026-10-05_Mon.png, so a month's graphics sort by date in the Drive folder.
+function postFilename(p){ return STUDIO.filePrefix + '_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png'; }
+function calFilename(){ const p = selectedPost(); return p ? postFilename(p) : null; }
 
 // ---------- where to open ----------
 // The current week's post, or — once the month is winding down and next month's tab is
@@ -2423,7 +2602,7 @@ function renderCalendar(){
       h('span',{class:'cd-use'}, p.noHead ? 'Photo only' : loaded ? '\u2713 headline loaded' : 'Use this post')));
   }
   detail.append(wrap);
-  detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
+  if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
     title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
   if (shown && shown.post) {
     detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
@@ -2502,175 +2681,29 @@ async function wireCalendar(){
   watchCalendar();
 }
 
-// ---------- Generate from the calendar ----------
-// The calendar post decides the graphic: its hook text is the headline, and its caption and
-// bucket decide which photos fit and which layout suits it. Three options come back side by
-// side; "More options" swaps in the next-best photos. Random generation is untouched.
+// Every studio carries this module; it only does anything for a client whose clients.js
+// entry has a calendar block.
+window.addEventListener('load', () => { wireCalendar(); });
 
-// Words in a post → photo tags (from springforth/library/manifest.json). Earlier tags in each
-// row weigh a little more than later ones.
-const CONTEXT_TAGS = [
-  [/\bmath|number|fraction|multiplic|bad at|mess (?:this |it )?up|mistake|homework|worksheet|study|practice|do it later|procrastinat|struggl|work through|focus|concentrat/, ['schoolwork','focus','math','writing']],
-  [/\bread|\bbooks?\b|stor(?:y|ies)|librar|\bdear\b|drop everything/, ['reading','focus']],
-  [/\bwrit|journal|essay|spelling/, ['writing','schoolwork']],
-  [/monster|hero|courage|brave|grit|growth|mindset|i can\b|persever|resilien|challeng/, ['hero','schoolwork','focus','challenge','growth']],
-  [/\bbuil|creat|project|design|cardboard|engineer|invent/, ['building','project','hands-on']],
-  [/scien|experiment|discover/, ['science','experiment','hands-on']],
-  [/\bart\b|paint|draw|creativ/, ['art','creative']],
-  [/chess|strateg|\bgames?\b/, ['chess','games','thinking']],
-  [/exhibit|present|showcase|carnival|booth|entrepreneur|business|market/, ['exhibition','presenting','project']],
-  [/parent|famil|\bmom|\bdad|at home|grandparent/, ['parents','family']],
-  [/communit|together|friend|\bkind(?!\s+of)|help|belong|tribe|village/, ['community','friends','kindness','together']],
-  [/outside|outdoor|nature|recess|\bfield\b|\bplay|fresh air|explor/, ['outdoor','play','nature']],
-  [/field trip|\btrip\b|adventure|outing/, ['field-trip','fun']],
-  [/enroll|\btours?\b|visit|open house|join us|apply|spots|new families/, ['whole-school','welcome','community']],
-  [/leader|\blead\b|discussion|socratic|question|circle|debate|voice/, ['discussion','leadership','presenting']],
-  [/feedback|encourag|praise/, ['feedback','discussion']],
-  [/back to school|new year|welcome|first day|another year|celebrat|wraps? up/, ['celebration','whole-school','smiling']],
-  [/sparks|youngest|little ones|kinder/, ['younger']],
-  [/\bteens?\b|middle school|older learners/, ['older']],
-  [/real.?world|real life|life skill|first aid|cook/, ['real-world','hands-on']],
-];
-const BUCKET_TAGS = {
-  'inspiring growth':['schoolwork','focus','growth','hero'],
-  'equipping':['parents','schoolwork','discussion'],
-  'community':['community','parents','group','friends'],
-  'enrollment':['whole-school','welcome','community','exhibition'],
-  'enrollement':['whole-school','welcome','community','exhibition'],
-};
+// ---------- Generate from the calendar (shared) ----------
+// The calendar post decides the graphic. The studio's adapter supplies the ideas
+// (STUDIO.specsFor) and builds each one on the canvas (STUDIO.buildOption); this module runs
+// the three-option view and the button. A studio without an adapter gets the calendar but
+// not the generate buttons.
 
-function contextWants(p){
-  const want = {};
-  const add = (tags, w) => tags.forEach((t, i) => { want[t] = (want[t] || 0) + w - i*0.25; });
-  const txt = ((p.hook || '') + ' ' + captionBody(p.post)).toLowerCase();
-  for (const [re, tags] of CONTEXT_TAGS) if (re.test(txt)) add(tags, 3);
-  for (const part of String(p.bucket || '').split(/[\/,&]+/)) {
-    // an enrollment post is about the school as a whole, whatever its caption mentions
-    const key = part.trim().toLowerCase(), tags = BUCKET_TAGS[key];
-    if (tags) add(tags, /^enroll/.test(key) ? 4 : 1.5);
-  }
-  return want;
+// Spread the studio's frames (borders) across a set so no two options share one.
+function frameOrder(){
+  return (STUDIO.frames || []).map(f => ({ f, k: Math.pow(Math.random(), 1/(f.weight || 1)) })).sort((a,b) => b.k - a.k).map(x => x.f);
 }
-// Best match first, one photo per shoot (no two crops of the same moment). Photos already
-// offered for this post sink to the bottom rather than vanish, so a small library never runs dry.
-function rankPhotos(p, offered){
-  const want = contextWants(p);
-  const scored = LIB.map(ph => {
-    let s = 0;
-    for (const t of ph.tags) s += want[t] || 0;
-    if (ph.tags.includes('weak')) s -= 4;
-    if (photoMem.used[ph.id]) s -= 0.6;
-    if (offered.has(ph.id)) s -= 100;
-    return { ph, s: s + Math.random()*0.9 };
-  }).sort((a, b) => b.s - a.s);
-  const seen = new Set(), out = [];
-  for (const { ph } of scored) { if (seen.has(ph.group)) continue; seen.add(ph.group); out.push(ph); }
-  return out;
-}
-
-// A bulleted run in the caption ("- “I’m just bad at math,”") becomes the three-card list,
-// headed by the line that introduces it.
-function captionList(post){
-  const lines = String(post || '').split('\n');
-  const first = lines.findIndex(l => /^\s*(?:[-•–*]|\d+[.)])\s+\S/.test(l));
-  if (first < 0) return null;
-  const items = [];
-  for (const l of lines.slice(first)) {
-    const m = l.match(/^\s*(?:[-•–*]|\d+[.)])\s+(.+)/);
-    if (!m) { if (items.length && l.trim()) break; continue; }
-    // drop the sentence glue the caption hangs between bullets: a trailing ", or" / "and" / comma
-    const t = m[1].trim().replace(/[,;]?\s+(?:or|and)\s*$/i, '').replace(/[,;]+$/, '').replace(/[,;](”|")$/, '$1');
-    if (t.length <= 70) items.push(t);
-  }
-  if (items.length < 2) return null;
-  let head = '';
-  for (let i = first - 1; i >= 0 && !head; i--) head = lines[i].trim();
-  head = head.length && head.length <= 70 ? head.replace(/[,.:;]?$/, ':') : 'Sound familiar?';
-  return { headline: head, items: items.slice(0, 3) };
-}
-// A parent's words in quotation marks become the cork-board quote.
-function captionQuote(post){
-  const t = String(post || '');
-  const q = (t.match(/[“"]([^”"]{30,260})[”"]/) || [])[1];
-  if (!q) return null;
-  const leads = /^\s*[“"]/.test(t);
-  if (!leads && !/parent|mom|dad|family|our (?:kids|children)|my (?:child|son|daughter)/i.test(t)) return null;
-  return { quote: '“' + q.trim() + '”', attr: '— a Spring Forth parent' };
-}
-
-// Build one complete graphic into S/IMG and hand back what's needed to put it back later.
-async function buildOption(o){
-  S.template = o.template; S.els = []; S.bg.cells = null;
-  // frame: one of FRAMES below, or 'none' for a bare photo (the badge layout)
-  const fr = o.frame && o.frame !== 'none' ? o.frame : null;
-  S.waveStyle = fr ? fr.style : 'a';
-  S.wave = o.frame === 'none' ? 'none' : fr ? fr.wave : 'both';
-  if (o.headline != null && o.template !== 'quote') S.els.push(text('headline', o.headline));
-  if (o.template === 'quote') { S.els.push(text('quote', o.quote)); S.els.push(text('attr', o.attr)); }
-  if (o.template === 'list') (o.items || []).forEach((t, i) => S.els.push(text('item-' + (i+1), t)));
-  if (o.template === 'photo' || o.template === 'logo') {
-    S.bg.seed = Math.floor(Math.random()*100000) + 1; S.bg.zoom = 1; S.bg.ox = S.bg.oy = 0;
-    IMG.bg = await libImage(o.photo.url); IMG.src = Object.assign({ kind:'lib' }, o.photo); S.bg.kind = 'photo';
-  } else if (o.template === 'collage') {
-    await makeCollage('all', o.photos);
-  } else {
-    await randomBackground(o.template);
-  }
-  randomStyle();
-  if (o.template === 'headline') { addPhoto(o.photo, await libImage(o.photo.url)); }
-  if (o.badge) placeBadge('badge-now-enrolling');
-  return { label: o.label, state: JSON.parse(snapshot()), bg: IMG.bg, src: IMG.src ? clone(IMG.src) : null, thumb: thumb(),
-           photos: o.photo ? [o.photo.id] : (o.photos || []).map(x => x.id) };
-}
-
-// Their posts use several borders, not just the blue wave, so the three options each get a
-// different one: never the same twice in a set, and the full blue wave at most once.
-const FRAMES = [
-  { name:'blue wave',        style:'a', wave:'both',   weight:3 },
-  { name:'bottom wave',      style:'a', wave:'bottom', weight:3 },
-  { name:'white footer',     style:'c', wave:'bottom', weight:3 },
-  { name:'plain wave',       style:'b', wave:'both',   weight:1 },
-];
 function assignFrames(specs){
   // weighted shuffle, then hand them out in order to the options that don't have one yet
-  const order = FRAMES.map(f => ({ f, k: Math.pow(Math.random(), 1/f.weight) })).sort((a,b) => b.k - a.k).map(x => x.f);
+  const order = frameOrder(); if (!order.length) return;
   let i = 0;
   for (const s of specs) {
     if (s.frame) continue;
     s.frame = order[i++ % order.length];
     s.label += ' \u00b7 ' + s.frame.name;
   }
-}
-
-// The options a post gets, best first: what the month batch and the three-option view share.
-function specsFor(p, offered){
-  const head = headlineFor(p);
-  const ranked = rankPhotos(p, offered);
-  const list = captionList(p.post), quote = captionQuote(p.post);
-  const bucket = String(p.bucket || '').toLowerCase();
-  const specs = [];
-  if (p.noHead && ranked.length) {
-    // x in HOOK TEXT: the picture is the post — full photos in the frame, and a collage
-    specs.push({ label:'Photo only', template:'logo', photo:ranked[0] });
-    if (ranked[1]) specs.push(/enroll/.test(bucket)
-      ? { label:'Enrolling badge', template:'logo', photo:ranked[1], frame:'none', badge:true }
-      : { label:'Photo only', template:'logo', photo:ranked[1] });
-    if (ranked.length >= 5) specs.push({ label:'Collage', template:'collage', photos:ranked.slice(2, 6) });
-    else if (ranked[2]) specs.push({ label:'Photo only', template:'logo', photo:ranked[2] });
-  } else if (ranked.length) {
-    specs.push({ label:'Photo + headline', template:'headline', headline:head, photo:ranked[0] });
-    // enrollment posts get the full photo with their Now Enrolling badge
-    if (ranked[1]) specs.push(/enroll/.test(bucket)
-      ? { label:'Enrolling badge', template:'photo', headline:head, photo:ranked[1], frame:'none', badge:true }
-      : { label:'Full photo', template:'photo', headline:head, photo:ranked[1] });
-  }
-  if (p.noHead) { /* no writing on the page, so no list, quote or note card */ }
-  else if (list) specs.push({ label:'List card', template:'list', headline:list.headline, items:list.items });
-  else if (quote) specs.push({ label:'Parent quote', template:'quote', quote:quote.quote, attr:quote.attr });
-  else if (/community|enroll/.test(bucket) && ranked.length >= 5) specs.push({ label:'Collage', template:'collage', headline:head, photos:ranked.slice(2, 6) });
-  else specs.push({ label:'Note card', template:'note', headline:head });
-  if (!p.noHead && specs.length < 3 && ranked[2]) specs.splice(1, 0, { label:'Photo + headline', template:'headline', headline:head, photo:ranked[2] });
-  return specs;
 }
 
 const CTX = { iso:null, offered:new Set(), options:[], on:-1 };
@@ -2689,11 +2722,11 @@ async function generateFromPost(){
     if (CAL.view && CAL.view.kind === 'week') CAL.view.used = p.iso; else CAL.view = { kind:'day', iso:p.iso };
     if (CTX.iso !== p.iso) { CTX.iso = p.iso; CTX.offered = new Set(); }
     pushUndo();
-    const specs = specsFor(p, CTX.offered);
+    const specs = STUDIO.specsFor(p, CTX.offered);
     assignFrames(specs.slice(0, 3));
     CTX.options = [];
     for (const o of specs.slice(0, 3)) {
-      const built = await buildOption(o);
+      const built = await STUDIO.buildOption(o);
       built.photos.forEach(id => CTX.offered.add(id));
       CTX.options.push(built);
     }
@@ -2728,7 +2761,8 @@ function renderOptions(){
 // The calendar button always says which post it will use, so there's no guessing.
 function updateCalGen(){
   const b = $('#calGen'); if (!b) return;
-  if (!calCfg()) { b.hidden = true; return; }
+  if (!calCfg() || !STUDIO.specsFor) { b.hidden = true; return; }
+  b.hidden = false;
   const p = calTarget();
   // options made for one post shouldn't linger once another post is picked
   if (CTX.options.length && (!p || p.iso !== CTX.iso)) { CTX.options = []; CTX.on = -1; renderOptions(); }
@@ -2741,90 +2775,16 @@ $('#calGen').addEventListener('click', generateFromPost);
 $('#optsMore').addEventListener('click', generateFromPost);
 $('#optsClose').addEventListener('click', () => { CTX.options = []; CTX.on = -1; renderOptions(); });
 
-// Clear: everything off the page but the paper and the wave frame. The calendar selection
-// stays, so the next "Generate from calendar" picks up where Karissa was.
-$('#clearBtn').addEventListener('click', () => {
-  pushUndo();
-  S.template = 'logo'; S.els = []; S.sel = null;
-  S.bg.kind = 'paper'; S.bg.ground = 'paper'; S.bg.cells = null; S.bg.dim = 0;
-  // the photo stays loaded (just not shown on paper) so Undo brings the graphic back whole
-  IMG.src = { kind:'ground', ground:'paper' };
-  CTX.options = []; CTX.on = -1; renderOptions();
-  currentDraftId = null;
-  hideWelcome();
-  templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
-  toast('Cleared \u2014 Undo brings it back');
+
+// With a calendar, the plain generator becomes the "Random" one beside it.
+window.addEventListener('load', () => {
+  if (!calCfg()) return;
+  const g = $('#genBtn'); if (!g || !STUDIO.specsFor) return;
+  g.classList.remove('gen'); g.textContent = '\u2728 Random';
+  g.title = 'Build a graphic from your own text with a random photo, look and layout \u2014 not tied to the calendar';
 });
 
-// ---------- zooming photos ----------
-// Scroll (or trackpad-pinch) over a framed or collage photo to zoom it inside its frame, or
-// over a full-page photo to zoom the background. One undo step per gesture.
-var cropMode = null;                 // id of the framed photo whose drag pans inside its frame
-let wheelUndoAt = 0;
-cv.addEventListener('wheel', e => {
-  const [x, y] = toDesign(e);
-  const el = hitEl(x, y);
-  const photo = el && el.type === 'image' ? el : null;
-  if (!photo && !(S.bg.kind === 'photo' && IMG.bg && !el)) return;
-  e.preventDefault();
-  if (Date.now() - wheelUndoAt > 600) pushUndo();
-  wheelUndoAt = Date.now();
-  const f = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
-  if (photo) {
-    photo.zoom = Math.max(1, Math.min(4, (photo.zoom || 1) * f));
-    if (S.sel !== photo.id) { S.sel = photo.id; renderInspector(); }
-    const z = $('#insp-zoom'); if (z) z.value = Math.round(photo.zoom*100);
-  } else {
-    S.bg.zoom = Math.max(1, Math.min(3, (S.bg.zoom || 1) * f));
-    $('#zoom').value = Math.round(S.bg.zoom*100);
-  }
-  render();
-}, { passive:false });
-// Double-click a framed photo to switch dragging between moving the frame and moving the
-// photo inside it.
-cv.addEventListener('dblclick', e => {
-  const [x, y] = toDesign(e);
-  const el = hitEl(x, y);
-  if (!el || el.type !== 'image') return;
-  cropMode = cropMode === el.id ? null : el.id;
-  S.sel = el.id; renderInspector(); render();
-  toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
-});
-
-// Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its
-// frame), or the full-page photo. While two fingers are down the ordinary drag stands aside.
-const touches = new Map();
-let pinch = null;
-cv.style.touchAction = 'none';
-cv.addEventListener('pointerdown', e => {
-  if (e.pointerType !== 'touch') return;
-  touches.set(e.pointerId, [e.clientX, e.clientY]);
-  if (touches.size !== 2) return;
-  const [[x1, y1], [x2, y2]] = [...touches.values()];
-  const [mx, my] = toDesign({ clientX:(x1+x2)/2, clientY:(y1+y2)/2 });
-  const el = hitEl(mx, my);
-  const target = el && el.type === 'image' ? el : (S.bg.kind === 'photo' && IMG.bg ? 'bg' : null);
-  if (!target) return;
-  drag = null;                                   // the first finger's drag doesn't get to move things
-  pinch = { target, d0: Math.hypot(x2-x1, y2-y1), z0: target === 'bg' ? (S.bg.zoom || 1) : (target.zoom || 1) };
-  e.stopImmediatePropagation();
-}, true);
-cv.addEventListener('pointermove', e => {
-  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
-  touches.set(e.pointerId, [e.clientX, e.clientY]);
-  if (!pinch || touches.size < 2) return;
-  e.stopImmediatePropagation();
-  const [[x1, y1], [x2, y2]] = [...touches.values()];
-  const z = pinch.z0 * Math.hypot(x2-x1, y2-y1) / pinch.d0;
-  if (pinch.target === 'bg') { S.bg.zoom = Math.max(1, Math.min(3, z)); $('#zoom').value = Math.round(S.bg.zoom*100); }
-  else { pinch.target.zoom = Math.max(1, Math.min(4, z)); const s = $('#insp-zoom'); if (s) s.value = Math.round(pinch.target.zoom*100); }
-  render();
-}, true);
-const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
-cv.addEventListener('pointerup', endTouch, true);
-cv.addEventListener('pointercancel', endTouch, true);
-
-// ---------- the whole month at once ----------
+// ---------- the whole month at once (shared) ----------
 // One graphic per post in the month on view, built the way "Generate from calendar" builds
 // them, with the layouts and borders mixed across the month and no photo used twice. The set
 // sits in the right rail: click a post to open it on the canvas and tweak it (the change is
@@ -2832,7 +2792,6 @@ cv.addEventListener('pointercancel', endTouch, true);
 
 const MONTH = { key:null, label:'', items:[], on:-1 };
 
-function postFilename(p){ return 'SpringForth_' + p.iso + '_' + DAY_ABBR[p.date.getDay()] + '.png'; }
 function postLabel(p){ return DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate(); }
 
 async function generateMonth(){
@@ -2846,17 +2805,17 @@ async function generateMonth(){
     pushUndo();
     const offered = new Set(), items = [];
     // borders go round in a shuffled order so neighbouring posts don't match
-    const order = FRAMES.map(f => ({ f, k: Math.pow(Math.random(), 1/f.weight) })).sort((a,b) => b.k - a.k).map(x => x.f);
+    const order = frameOrder();
     let fi = 0;
     for (let i = 0; i < m.posts.length; i++) {
       const p = m.posts[i];
       $('#loading').textContent = 'Building ' + postLabel(p) + ' (' + (i+1) + ' of ' + m.posts.length + ')…';
-      const specs = specsFor(p, offered);
+      const specs = STUDIO.specsFor(p, offered);
       if (!specs.length) continue;
       // mix the layouts across the month: each post takes the next of its own top options
       const s = Object.assign({}, specs[i % Math.min(3, specs.length)]);
-      if (!s.frame) s.frame = order[fi++ % order.length];
-      const built = await buildOption(s);
+      if (!s.frame && order.length) s.frame = order[fi++ % order.length];
+      const built = await STUDIO.buildOption(s);
       built.photos.forEach(id => offered.add(id));
       items.push({ p, built });
     }
@@ -2926,7 +2885,7 @@ async function downloadMonth(){
     const zip = new JSZip();
     for (const it of MONTH.items) zip.file(postFilename(it.p), await renderItem(it));
     zip.file('captions.txt', captionsText());
-    saveBlob(await zip.generateAsync({ type:'blob' }), 'SpringForth_' + MONTH.label.replace(/\s+/g, '-') + '.zip');
+    saveBlob(await zip.generateAsync({ type:'blob' }), STUDIO.filePrefix + '_' + MONTH.label.replace(/\s+/g, '-') + '.zip');
     MONTH.items.forEach(it => { calDone[doneKey(it.p)] = Date.now(); }); saveCalDone();
     renderCalendar(); renderMonth();
   } catch (err) { console.error(err); toast('Couldn’t make the zip: ' + (err.message || err)); }
@@ -2936,7 +2895,7 @@ async function downloadMonth(){
 // ---------- Save to Drive ----------
 // Talks to the Apps Script web app in apps-script/ (set up once; its URL goes in clients.js as
 // calendar.driveEndpoint). The team passcode is asked for once and remembered in this browser.
-const DRIVE_PASS_KEY = 'sfa-drive-pass';
+const DRIVE_PASS_KEY = STUDIO.slug + '-drive-pass';
 function driveCfg(){ const c = calCfg(); return c && c.driveEndpoint ? c : null; }
 function drivePass(ask){
   let v = ''; try { v = localStorage.getItem(DRIVE_PASS_KEY) || ''; } catch {}
@@ -2960,7 +2919,7 @@ function blobToBase64(blob){
 function monthOf(p){ return CAL.months.find(m => m.y === p.date.getFullYear() && m.m === p.date.getMonth()); }
 async function savePostToDrive(p, blob){
   const cfg = driveCfg(), m = monthOf(p);
-  return drivePost({ action:'save', client:'Spring Forth', month: MONTHS[p.date.getMonth()] + ' ' + p.date.getFullYear(),
+  return drivePost({ action:'save', client:STUDIO.name, month: MONTHS[p.date.getMonth()] + ' ' + p.date.getFullYear(),
     filename: postFilename(p), png: await blobToBase64(blob),
     sheetId: cfg.sheetId, tab: m ? m.tab : '', iso: p.iso, dateCol: cfg.cols.date, imageCol: cfg.cols.image });
 }
@@ -3000,7 +2959,7 @@ async function syncDoneFromDrive(){
   if (!driveCfg() || !drivePass(false)) return;
   for (const m of CAL.months) {
     try {
-      const j = await drivePost({ action:'status', client:'Spring Forth', month:m.label }, false);
+      const j = await drivePost({ action:'status', client:STUDIO.name, month:m.label }, false);
       const names = new Set(j.files || []);
       for (const p of m.posts) if (names.has(postFilename(p))) calDone[doneKey(p)] = calDone[doneKey(p)] || Date.now();
     } catch { return; }
@@ -3016,10 +2975,96 @@ $('#driveBtn').addEventListener('click', saveCurrentToDrive);
 (async () => {
   if (!window.BI_CLIENTS) await new Promise(r => window.addEventListener('load', r, { once:true }));
   $('#driveBtn').hidden = !driveCfg();
+  $('#calMonthGen').hidden = !STUDIO.specsFor;
   // wait for the calendar's first read before asking Drive what's already filed
   for (let i = 0; i < 60 && !['ready','empty','offline'].includes(CAL.state); i++) await new Promise(r => setTimeout(r, 250));
   syncDoneFromDrive();
 })();
+
+// ---------- Clear (shared) ----------
+// Everything off the page, back to the studio's blank starting point (STUDIO.blank). The
+// calendar selection stays, so the next "Generate from calendar" picks up where you were.
+$('#clearBtn').addEventListener('click', () => {
+  pushUndo();
+  S.sel = null;
+  STUDIO.blank();
+  if (typeof CTX !== 'undefined') { CTX.options = []; CTX.on = -1; renderOptions(); }
+  currentDraftId = null;
+  hideWelcome();
+  templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
+  toast('Cleared \u2014 Undo brings it back');
+});
+
+// ---------- zooming photos (shared) ----------
+// Scroll (or trackpad-pinch) over a framed or collage photo to zoom it inside its frame, or
+// over a full-page photo to zoom the background. One undo step per gesture.
+// a full-page photo: Bakken-Young's background is always one, the others say so in S.bg.kind
+function bgIsPhoto(){ return !!IMG.bg && (!S.bg.kind || S.bg.kind === 'photo'); }
+var cropMode = null;                 // id of the framed photo whose drag pans inside its frame
+let wheelUndoAt = 0;
+cv.addEventListener('wheel', e => {
+  const [x, y] = toDesign(e);
+  const el = hitEl(x, y);
+  const photo = el && el.type === 'image' && typeof cropRoom === 'function' ? el : null;
+  // over text or the logo, the background photo is what zooms
+  if (!photo && !bgIsPhoto()) return;
+  e.preventDefault();
+  if (Date.now() - wheelUndoAt > 600) pushUndo();
+  wheelUndoAt = Date.now();
+  const f = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
+  if (photo) {
+    photo.zoom = Math.max(1, Math.min(4, (photo.zoom || 1) * f));
+    if (S.sel !== photo.id) { S.sel = photo.id; renderInspector(); }
+    const z = $('#insp-zoom'); if (z) z.value = Math.round(photo.zoom*100);
+  } else {
+    S.bg.zoom = Math.max(1, Math.min(3, (S.bg.zoom || 1) * f));
+    $('#zoom').value = Math.round(S.bg.zoom*100);
+  }
+  render();
+}, { passive:false });
+// Double-click a framed photo to switch dragging between moving the frame and moving the
+// photo inside it.
+cv.addEventListener('dblclick', e => {
+  const [x, y] = toDesign(e);
+  const el = hitEl(x, y);
+  if (!el || el.type !== 'image' || typeof cropRoom !== 'function') return;
+  cropMode = cropMode === el.id ? null : el.id;
+  S.sel = el.id; renderInspector(); render();
+  toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
+});
+
+// Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its
+// frame), or the full-page photo. While two fingers are down the ordinary drag stands aside.
+const touches = new Map();
+let pinch = null;
+cv.style.touchAction = 'none';
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size !== 2) return;
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const [mx, my] = toDesign({ clientX:(x1+x2)/2, clientY:(y1+y2)/2 });
+  const el = hitEl(mx, my);
+  const target = el && el.type === 'image' && typeof cropRoom === 'function' ? el : (bgIsPhoto() ? 'bg' : null);
+  if (!target) return;
+  drag = null;                                   // the first finger's drag doesn't get to move things
+  pinch = { target, d0: Math.hypot(x2-x1, y2-y1), z0: target === 'bg' ? (S.bg.zoom || 1) : (target.zoom || 1) };
+  e.stopImmediatePropagation();
+}, true);
+cv.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (!pinch || touches.size < 2) return;
+  e.stopImmediatePropagation();
+  const [[x1, y1], [x2, y2]] = [...touches.values()];
+  const z = pinch.z0 * Math.hypot(x2-x1, y2-y1) / pinch.d0;
+  if (pinch.target === 'bg') { S.bg.zoom = Math.max(1, Math.min(3, z)); $('#zoom').value = Math.round(S.bg.zoom*100); }
+  else { pinch.target.zoom = Math.max(1, Math.min(4, z)); const s = $('#insp-zoom'); if (s) s.value = Math.round(pinch.target.zoom*100); }
+  render();
+}, true);
+const endTouch = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+cv.addEventListener('pointerup', endTouch, true);
+cv.addEventListener('pointercancel', endTouch, true);
 
 // ---------- misc ----------
 let toastT = 0;
@@ -3036,7 +3081,6 @@ async function fontsReady(){
   IMG.src = { kind:'ground', ground:S.bg.ground };
   await loadArt();
   renderLooks(); templateDefaults(); layout(); syncControls(); fitCanvas(); renderDrafts();
-  wireCalendar();
   await loadLibrary();
   // the opening page obeys the same house rule as every other: a headline arrives with a photo
   if (S.template === 'headline' && !byId('photo') && S.bg.kind === 'paper') {
@@ -3048,7 +3092,7 @@ async function fontsReady(){
 })();
 })();
 </script>
-<script src="../clients.js?v=202610121623"></script>
+<script src="../clients.js?v=202610121648"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {
