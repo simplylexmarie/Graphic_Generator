@@ -154,7 +154,7 @@ const FRAMES = [
   { name:'blue wave',        style:'a', wave:'both',   weight:3 },
   { name:'bottom wave',      style:'a', wave:'bottom', weight:3 },
   { name:'white footer',     style:'c', wave:'bottom', weight:3 },
-  { name:'plain wave',       style:'b', wave:'both',   weight:1 },
+  { name:'plain wave',       style:'b', wave:'both',   weight:3 },
 ];
 // The options a post gets, best first: what the month batch and the three-option view share.
 function specsFor(p, offered){
