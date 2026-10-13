@@ -127,6 +127,12 @@ async function drivePost(body, ask = true){
   if (!j.ok) { const e = new Error(j.error || 'Drive said no'); e.data = j.data; throw e; }
   return j;
 }
+// For a month kept in the generator the button says which day the graphic goes to.
+function updateDriveLabel(){
+  const b = $('#driveBtn'); if (!b || b.disabled) return;
+  const p = selectedPost(), m = p && monthOf(p);
+  b.textContent = '\u2601 ' + (p && m && m.source === 'app' ? 'Save to ' + postLabel(p) : 'Save to Drive');
+}
 function blobToBase64(blob){
   return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
 }
@@ -144,11 +150,12 @@ async function saveCurrentToDrive(){
   const btn = $('#driveBtn'); btn.disabled = true; btn.textContent = 'Saving…';
   try {
     await fontsReady();
-    await savePostToDrive(p, await renderBlob());
-    markPostDone(p); keepCurrentInMonth(); renderMonth();
+    const saved = await savePostToDrive(p, await renderBlob());
+    attachGraphic(p, saved, currentDesign());
+    markPostDone(p); keepCurrentInMonth(); renderMonth(); renderCalendar();
     toast('Saved to Drive and added to the calendar for ' + postLabel(p));
   } catch (err) { toast('Couldn’t save: ' + (err.message || err)); }
-  finally { btn.disabled = false; btn.textContent = '☁ Save to Drive'; }
+  finally { btn.disabled = false; updateDriveLabel(); }
 }
 
 async function saveMonthToDrive(){
@@ -159,7 +166,8 @@ async function saveMonthToDrive(){
     await fontsReady();
     for (const it of MONTH.items) {
       btn.textContent = 'Saving ' + (done+1) + ' of ' + MONTH.items.length + '…';
-      await savePostToDrive(it.p, await renderItem(it));
+      const saved = await savePostToDrive(it.p, await renderItem(it));
+      attachGraphic(it.p, saved, { state: it.built.state, src: storableSrc(it.built.src) });
       calDone[doneKey(it.p)] = Date.now(); done++;
     }
     saveCalDone();

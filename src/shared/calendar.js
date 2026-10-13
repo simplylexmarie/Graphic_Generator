@@ -178,7 +178,7 @@ let calDone = {};
 function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
 function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
 function doneKey(p){ return ((calCfg() || {}).sheetId || STUDIO.slug) + '|' + p.iso; }
-function isDone(p){ return !!calDone[doneKey(p)]; }
+function isDone(p){ return !!calDone[doneKey(p)] || !!p.graphic; }
 function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
 
 // ---------- the headline for a post with no hook text ----------
@@ -296,7 +296,7 @@ function renderCalendar(){
   const sec = $('#calSec'); if (!sec) return;
   if (!calCfg()) { sec.hidden = true; return; }
   sec.hidden = false;
-  renderStoreButtons();
+  renderStoreButtons(); updateDriveLabel();
   const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
   if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
   if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }

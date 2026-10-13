@@ -23,7 +23,7 @@ function postFromStore(x){
   const date = new Date(y, mo-1, d);
   return { id: x.id || ('p' + Math.random().toString(36).slice(2, 9)), date, iso: x.iso, week: null, day: DAY_FULL[date.getDay()],
            bucket: x.bucket || '', hook: x.noHead ? '' : (x.hook || ''), noHead: !!x.noHead, post: x.post || '',
-           photoIdea: x.photoIdea || '', approved: !!x.approved };
+           photoIdea: x.photoIdea || '', approved: !!x.approved, graphic: x.graphic || null, design: x.design || null };
 }
 function monthFromStore(data){
   const [y, mo] = data.month.split('-').map(Number), m = mo - 1;
@@ -32,7 +32,7 @@ function monthFromStore(data){
 }
 function storeFromMonth(month){
   return { approved: !!month.approved, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
-           post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved })) };
+           post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved, graphic:p.graphic || null, design:p.design || null })) };
 }
 
 // The generator's months from this one on.
@@ -56,6 +56,9 @@ function touchMonth(month){
 }
 async function saveMonth(month){
   storeTimer = null;
+  // one save at a time: a change made while one is in flight goes out right after it
+  if (STORE.saving) { STORE.pending = month; return; }
+  STORE.saving = true;
   try {
     const j = await drivePost({ action:'cal.save', client:STUDIO.name, month: storeKey(month.y, month.m), data: storeFromMonth(month), rev: month.rev }, false);
     month.rev = j.rev; STORE.status = 'Saved ✓';
@@ -67,8 +70,48 @@ async function saveMonth(month){
       renderCalendar(); return;
     }
     STORE.status = 'Not saved — ' + err.message;
+  } finally {
+    STORE.saving = false;
+    if (STORE.pending) { const m = STORE.pending; STORE.pending = null; saveMonth(m); }
   }
   renderCalendarStatusOnly();
+}
+
+// ---------- graphics attached to posts ----------
+// Saving a graphic for a generator month's post files the PNG in Drive and keeps it, with its
+// editable design, on the post, so anyone can see it on that day and reopen it later.
+function storableSrc(src){
+  if (!src) return null;
+  if (src.kind === 'own') return null;                // an uploaded photo is too big to keep here
+  return clone(src);
+}
+function currentDesign(){ return { state: JSON.parse(snapshot()), src: storableSrc(IMG.src) }; }
+function attachGraphic(p, saved, design){
+  const month = CAL.months.find(m => m.source === 'app' && m.y === p.date.getFullYear() && m.m === p.date.getMonth());
+  if (!month || !saved || !saved.id) return;
+  const post = month.posts.find(x => x.id === p.id) || month.posts.find(x => x.iso === p.iso);
+  if (!post) return;
+  post.graphic = { id: saved.id, url: saved.url, savedAt: new Date().toISOString() };
+  post.design = design;
+  touchMonth(month);
+}
+const driveThumb = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 400);
+
+async function openDesign(p){
+  const d = p.design; if (!d || !d.state) return;
+  pushUndo();
+  Object.assign(S, clone(d.state)); S.sel = null;
+  IMG.bg = null; IMG.src = d.src ? clone(d.src) : null;
+  $('#loading').classList.add('show');
+  try {
+    if (d.src && d.src.kind === 'lib') IMG.bg = await libImage(d.src.url);
+    await Promise.all(S.els.filter(e => e.type === 'image').map(e => libImage(e.src).catch(() => null)));
+    if (S.bg.cells) await Promise.all(S.bg.cells.map(c => libImage(c.url).catch(() => null)));
+  } catch { toast('A photo in this design couldn\u2019t be loaded'); }
+  finally { $('#loading').classList.remove('show'); }
+  hideWelcome(); currentDraftId = null;
+  syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas();
+  toast('Opened the saved design for ' + postLabel(p) + ' \u2014 Save to ' + postLabel(p) + ' again when you\u2019re done');
 }
 function renderCalendarStatusOnly(){ const m = curMonth(); if (m && m.source === 'app') $('#calStatus').textContent = calStatusText(m); }
 
@@ -100,7 +143,15 @@ function calEditor(detail, p, month){
     edit(()=>{ Object.assign(p, postFromStore(Object.assign({}, p, { iso:v }))); CAL.view = { kind:'day', iso:v }; }); renderCalendar(); }});
   const approved = h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:p.approved,
     onchange:e=>edit(()=>{ p.approved = e.target.checked; renderCalendar(); })}), ' Approved');
+  const graphic = p.graphic
+    ? h('div',{class:'ce-graphic'},
+        h('img',{src:driveThumb(p.graphic.id, 400), alt:'Saved graphic', loading:'lazy'}),
+        h('div',{class:'ce-gbtns'},
+          p.design ? h('button',{class:'btn sm',title:'Put this graphic back on the canvas to change it',onclick:()=>openDesign(p)}, 'Open design') : null,
+          h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, 'View in Drive')))
+    : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
   detail.append(h('div',{class:'ce'},
+    graphic,
     h('div',{class:'ce-row'}, field('Date', date), field('Bucket', sel)),
     field('Hook text', hook), noHead,
     field('Post text', caption),
@@ -116,6 +167,8 @@ function monthTools(detail, month){
   detail.append(h('div',{class:'ce-row ce-month'},
     h('button',{class:'btn sm',title:'Add a post on another date',onclick:()=>addPost(month)}, '+ Add a post'),
     h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
+    h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, '\U0001F4C4 Client report (Sheet)'),
+    h('button',{class:'btn sm',title:'The same report as a page to save as PDF and email',onclick:()=>printReport(month)}, '\U0001F5A8 Printable report'),
     h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:month.approved, onchange:e=>{ month.approved = e.target.checked; touchMonth(month); renderCalendar(); }}), ' Month approved')));
 }
 
@@ -240,3 +293,54 @@ window.addEventListener('load', () => {
     renderStoreButtons();
   });
 });
+
+// ---------- the client report ----------
+function reportRows(month){
+  return month.posts.map(p => ({ date: (p.date.getMonth()+1) + '/' + p.date.getDate() + '/' + p.date.getFullYear(),
+    day: DAY_FULL[p.date.getDay()].charAt(0) + DAY_FULL[p.date.getDay()].slice(1).toLowerCase(),
+    bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post, fileId: p.graphic ? p.graphic.id : null }));
+}
+function clientFull(){ return (window.BI_CLIENTS.find(c => c.slug === STUDIO.slug) || {}).full || STUDIO.name; }
+function missingGraphics(month){ return month.posts.filter(p => !p.graphic).length; }
+
+async function reportSheet(month){
+  const missing = missingGraphics(month);
+  if (missing && !confirm(missing + ' post' + (missing === 1 ? ' has' : 's have') + ' no graphic saved yet; the report will say \u201cGraphic coming\u201d for ' + (missing === 1 ? 'it' : 'them') + '. Make the report anyway?')) return;
+  toast('Building the client report\u2026');
+  try {
+    const j = await drivePost({ action:'report.sheet', client:STUDIO.name, clientFull:clientFull(), month:month.label, rows:reportRows(month) }, false);
+    month.reportUrl = j.url; touchMonth(month);
+    try { await navigator.clipboard.writeText(j.url); } catch {}
+    window.open(j.url, '_blank', 'noopener');
+    toast('Report ready \u2014 the link is copied. Anyone with it can view and comment.');
+  } catch (err) { toast('Couldn\u2019t build the report: ' + err.message); }
+}
+
+function printReport(month){
+  const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
+  const rows = reportRows(month).map(r => `<tr>
+    <td class="d"><b>${esc(r.day)}</b><br>${esc(r.date)}<div class="b">${esc(r.bucket)}</div></td>
+    <td class="g">${r.fileId ? `<img src="${driveThumb(r.fileId, 800)}" alt="">` : '<div class="none">Graphic coming</div>'}</td>
+    <td class="t">${r.hook ? `<div class="h">${esc(r.hook)}</div>` : '<div class="h muted">Photo only</div>'}<div class="p">${esc(r.post).replace(/\n/g, '<br>')}</div></td></tr>`).join('');
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(clientFull())} \u2014 ${esc(month.label)} social calendar</title>
+<meta name="robots" content="noindex">
+<style>
+  body{font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#1d2a30;margin:32px;background:#fff}
+  h1{font-size:22px;margin:0 0 4px} .sub{color:#667;margin:0 0 20px}
+  .bar{margin:0 0 20px} .bar button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid #03a2c6;background:#03a2c6;color:#fff;cursor:pointer}
+  table{width:100%;border-collapse:collapse} tr{page-break-inside:avoid;break-inside:avoid}
+  td{vertical-align:top;padding:14px 12px;border-top:1px solid #e3e8ea}
+  td.d{width:110px} .b{margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#03a2c6}
+  td.g{width:260px} td.g img{width:240px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .none{width:240px;height:300px;border:2px dashed #cfd8dc;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#90a4ae}
+  .h{font-weight:700;font-size:15px;margin-bottom:6px} .muted{color:#90a4ae;font-weight:400} .p{white-space:normal}
+  @media print{ .bar{display:none} body{margin:12mm} }
+</style></head><body>
+<h1>${esc(clientFull())} \u2014 ${esc(month.label)} social calendar</h1>
+<p class="sub">${month.posts.length} posts \u00b7 prepared ${new Date().toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' })}</p>
+<div class="bar"><button onclick="print()">Save as PDF / Print</button></div>
+<table>${rows}</table></body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type:'text/html' }));
+  window.open(url, '_blank', 'noopener');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}

@@ -47,3 +47,6 @@
 .ce-actions{align-items:center}
 .ce-month{margin-top:8px;align-items:center}
 .btn.danger{color:#e66}
+.ce-graphic{display:flex;gap:8px;align-items:flex-start}
+.ce-graphic img{width:96px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.25);display:block}
+.ce-gbtns{display:flex;flex-direction:column;gap:4px;align-items:flex-start}

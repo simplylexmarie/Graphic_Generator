@@ -34,6 +34,7 @@ function doPost(e) {
       case 'cal.save': return out(calSave(b));
       case 'ai.draft': return out(aiDraft(b));
       case 'ai.rewrite': return out(aiRewrite(b));
+      case 'report.sheet': return out(reportSheet(b));
       default: return out({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -272,4 +273,40 @@ function aiRewrite(b) {
     'Date: ' + p.iso + '\nBucket: ' + p.bucket + '\nHook: ' + p.hook + '\nPhoto idea: ' + (p.photoIdea || '') + '\nCaption:\n' + p.post +
     '\n\nReturn exactly one post with the same date.';
   return { ok: true, posts: claude(promptParts(b, user), 8000) };
+}
+
+// ---------- the client report ----------
+// A Google Sheet in the month's folder: one row per post with the date, bucket, headline,
+// post text and the graphic side by side, plus a column for the client's notes. Anyone with
+// the link can view and comment. Building it again updates the same sheet, so a link already
+// sent to the client keeps working.
+
+/** b: { client, clientFull, month (label), rows:[{ date, day, bucket, hook, post, fileId }] } */
+function reportSheet(b) {
+  const folder = child(clientFolder(b.client), b.month);
+  const name = b.client + ' \u2014 ' + b.month + ' social calendar';
+  const found = folder.getFilesByName(name);
+  let ss;
+  if (found.hasNext()) ss = SpreadsheetApp.openById(found.next().getId());
+  else {
+    ss = SpreadsheetApp.create(name);
+    DriveApp.getFileById(ss.getId()).moveTo(folder);
+  }
+  const sh = ss.getSheets()[0];
+  sh.clear();
+  sh.setName(b.month);
+  sh.getRange(1, 1).setValue((b.clientFull || b.client) + ' \u2014 ' + b.month + ' social calendar').setFontSize(16).setFontWeight('bold');
+  sh.getRange(2, 1).setValue('Please add any changes or approvals in the Client notes column, or as comments.').setFontColor('#666666');
+  const head = ['Date', 'Day', 'Bucket', 'Headline on the graphic', 'Post text', 'Graphic', 'Client notes'];
+  sh.getRange(4, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#eef5f8');
+  const rows = b.rows.map(r => [r.date, r.day, r.bucket, r.hook || '(photo only)', r.post,
+    r.fileId ? '=IMAGE("https://drive.google.com/thumbnail?id=' + r.fileId + '&sz=w1000")' : 'Graphic coming', '']);
+  if (rows.length) {
+    sh.getRange(5, 1, rows.length, head.length).setValues(rows).setVerticalAlignment('top').setWrap(true);
+    sh.setRowHeights(5, rows.length, 300);
+  }
+  [95, 90, 120, 190, 420, 300, 220].forEach((w, i) => sh.setColumnWidth(i + 1, w));
+  sh.setFrozenRows(4);
+  try { DriveApp.getFileById(ss.getId()).setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.COMMENT); } catch (err) {}
+  return { ok: true, url: ss.getUrl() };
 }

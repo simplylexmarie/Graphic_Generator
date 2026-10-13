@@ -47,6 +47,14 @@ New version** so the URL stays the same.
 - `<folder>/<Client>/_calendar/2026-11.json` — that month's posts. Two people editing at once is
   caught: the second save is refused and the studio shows the newer version.
 
+## The client report
+
+**Client report (Sheet)** in the calendar panel builds a Google Sheet in the month's folder —
+`Spring Forth — November 2026 social calendar` — with one row per post: date, day, bucket,
+headline, post text, the graphic, and a Client notes column. Anyone with the link can view and
+comment; the link is copied for you. Building it again updates the same sheet, so a link already
+sent keeps working. **Printable report** opens the same layout as a page to save as PDF.
+
 ## What it does in the sheet
 
 Save to Drive sets the post's IMAGE cell to `=IMAGE(...)` showing the graphic, with a note
