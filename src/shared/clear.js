@@ -9,5 +9,5 @@ $('#clearBtn').addEventListener('click', () => {
   currentDraftId = null;
   hideWelcome();
   templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas(); persist();
-  toast('Cleared \u2014 Undo brings it back');
+  toast('Cleared. Undo brings it back.');
 });

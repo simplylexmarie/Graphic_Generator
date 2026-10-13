@@ -295,7 +295,7 @@ canvas#c.dragging{cursor:grabbing}
       <div class="row"><label for="fade">Strength</label><input type="range" id="fade" min="0" max="90" value="45"></div>
       <div class="row"><label for="fadeSize">Height</label><input type="range" id="fadeSize" min="15" max="90" value="55"></div>
       <div class="row"><label>Color</label><div class="swatches" id="fadeColor"></div></div>
-      <p class="hint">Shading directly behind the logo or a text block is separate — click the logo or text to set it.</p>
+      <p class="hint">Shading directly behind the logo or a text block is separate. Click the logo or text to set it.</p>
     </div>
   </aside>
 
@@ -303,7 +303,7 @@ canvas#c.dragging{cursor:grabbing}
     <div class="toolbar">
       <span class="hint">Click anything on the graphic to select it. Drag to move · corners to resize · <span class="kbd">←↑↓→</span> nudge · <span class="kbd">⌫</span> remove</span>
       <span class="spacer"></span>
-      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>
+      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">Generate</button>
       <button class="btn sm" id="shufPhoto" title="Keep the text, try a different background">Shuffle background</button>
       <button class="btn sm" id="shufLook" title="Keep the photo, try a different look and layout">Shuffle look</button>
       <button class="btn sm" id="collageQuick" title="Generate a photo collage">⊞ Collage</button>
@@ -317,8 +317,8 @@ canvas#c.dragging{cursor:grabbing}
         <div class="welcome-card">
           <div class="kicker">Spring Forth studio</div>
           <h2>Welcome!</h2>
-          <p>Press Generate and get a finished graphic in one click — then change anything you like. Or pick a template on the left to build one yourself.</p>
-          <button class="btn gen big ping" id="welcomeGen">✨ Generate</button>
+          <p>Press Generate and get a finished graphic in one click, then change anything you like. Or pick a template on the left to build one yourself.</p>
+          <button class="btn gen big ping" id="welcomeGen">Generate</button>
           <button class="btn link alt" id="welcomeSkip">Start from a template instead</button>
         </div>
       </div>
@@ -346,7 +346,7 @@ canvas#c.dragging{cursor:grabbing}
     <h2>Generate a graphic</h2>
     <p>Type the headline (first line) and an optional second line. A short phrase like <b>Ownership</b> becomes a sticky-note card. Paste a parent’s quote and it becomes a cork-board note. Leave it blank for a photo. Keep pressing Generate until you like one, then tweak.</p>
     <div class="chips" id="topicChips" style="margin-bottom:6px"></div>
-    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">✎ Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
+    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
     <div class="field"><textarea id="genText" placeholder="Ownership&#10;&#10;…or paste the whole caption here"></textarea></div>
     <div class="row" style="margin-bottom:0"><label>Template</label>
       <div class="seg" id="genTpl">
@@ -475,7 +475,7 @@ function layout(){
     const gap = w*0.032, nw = (w - m*2 - gap*2)/3;
     const nh = Math.max(h*0.19, Math.min(h*0.33, floor - top - h*0.02));
     const y0 = top + (floor - top - nh)*0.52;
-    const defaults = ['“You worked hard on that.”','“You stuck with it, even when it was hard.”','“You tried a new strategy — that took courage.”'];
+    const defaults = ['“You worked hard on that.”','“You stuck with it, even when it was hard.”','“You tried a new strategy. That took courage.”'];
     for (let i=0;i<3;i++){
       const id = 'item-'+(i+1), nx = m + i*(nw+gap);
       const ny = y0 + (i===1 ? -h*0.020 : h*0.012);          // the middle card sits slightly proud
@@ -489,7 +489,7 @@ function layout(){
   }
   else if (S.template === 'quote') {
     const q = byId('quote')?.text ?? '“It’s very hands on, student driven… I love that we allow them to fail early and cheaply.”';
-    const a = byId('attr')?.text ?? '— a Spring Forth parent';
+    const a = byId('attr')?.text ?? 'A Spring Forth parent';
     // the card is cut to the length of the quote, with a couple of spare rules under it —
     // the master never pins up a notepad that trails off empty
     const floor = (waveFloor(0.06, 0.94) - 0.030)*h;
@@ -997,7 +997,7 @@ function autoContrast(announce){
   const L = LOOKS[S.look];
   const lum = measureLum();
   if (L.dark) {
-    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark — green text may be hard to read. Try “White on photo”.');
+    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark, so green text may be hard to read. Try “White on photo”.');
   } else {
     // bright photo → more darkening & fade; dark photo → almost none
     // house style: a uniform tint of roughly 25-50% depending on how bright the photo is
@@ -1121,7 +1121,7 @@ async function setTemplate(t){
   templateDefaults(); layout();
   // House rule from the master: a headline never sits on bare paper. It arrives with a photo,
   // and if the library is empty it becomes a sticky-note card instead of a hollow page.
-  if (t === 'headline') { if (await maybeAddPhoto()) layout(); else { S.template = 'note'; templateDefaults(); layout(); toast('Add photos to the library — showing a note card instead'); } }
+  if (t === 'headline') { if (await maybeAddPhoto()) layout(); else { S.template = 'note'; templateDefaults(); layout(); toast('Add photos to the library. Showing a note card for now.'); } }
   if (IMG.bg && S.bg.kind === 'photo') autoContrast(false);
   syncControls(); renderInspector(); renderResults(); render();
 }
@@ -1399,12 +1399,12 @@ function renderKindChips(){
 function renderResults(){
   const box = $('#results'); box.innerHTML = '';
   let list;
-  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet — hover an image and click ☆.'; }
-  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet — images show up here after you download a graphic using them.'; }
+  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet. Hover an image and click ☆.'; }
+  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet. Images show up here after you download a graphic using them.'; }
   else {
     renderKindChips();
     list = LIB.filter(p => libKind === 'all' || p.kind === libKind);
-    $('#rstatus').textContent = LIB.length ? `${list.length} photo${list.length===1?'':'s'} in the Spring Forth library` : 'The photo library is empty — add Spring Forth’s photos to get started. You can still upload one below.';
+    $('#rstatus').textContent = LIB.length ? `${list.length} photo${list.length===1?'':'s'} in the Spring Forth library` : 'The photo library is empty. Add Spring Forth’s photos to get started. You can still upload one below.';
   }
   $('#kindChips').hidden = tab !== 'lib';
   const usedNow = new Set((S.bg.cells||[]).map(c => c.id).concat([IMG.src?.id, byId('photo')?.libId].filter(Boolean)));
@@ -1542,7 +1542,7 @@ $('#collageQuick').addEventListener('click', async () => {
   if (!(await makeCollage('all'))) return;
   S.template = 'collage'; currentDraftId = null;
   templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-  toast('Collage — press again for another mix');
+  toast('Collage. Press again for another mix.');
 });
 
 // ---------- own photo ----------
@@ -1587,7 +1587,7 @@ document.addEventListener('paste', e => {
 function loadDrafts(){ try { return JSON.parse(localStorage.getItem(LS.drafts)||'[]'); } catch { return []; } }
 function storeDrafts(list){
   try { localStorage.setItem(LS.drafts, JSON.stringify(list)); return true; }
-  catch { toast('Browser storage is full — delete an old draft (ones with uploaded photos take the most room).'); return false; }
+  catch { toast('Browser storage is full. Delete an old draft (ones with uploaded photos take the most room).'); return false; }
 }
 function draftName(){
   if (byId('headline')?.text) return byId('headline').text.replace(/\n/g, ' ');
@@ -1626,7 +1626,7 @@ async function openDraft(d, asCopy){
   } catch { toast('An image for this draft couldn’t be loaded'); }
   finally { $('#loading').classList.remove('show'); }
   syncControls(); renderInspector(); renderResults(); fitCanvas(); renderDrafts();
-  toast(asCopy ? 'Opened a copy — save it to keep it as its own draft' : `Opened “${d.name}”`);
+  toast(asCopy ? 'Opened a copy. Save it to keep it as its own draft.' : `Opened “${d.name}”`);
 }
 function deleteDraft(id){
   const list = loadDrafts(); const d = list.find(x => x.id === id);
@@ -1699,7 +1699,7 @@ $('#dlBtn').addEventListener('click', async () => {
   try {
     await fontsReady();
     let blob;
-    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here — try picking it again or uploading it.'); return; }
+    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here. Try picking it again or uploading it.'); return; }
     saveBlob(blob, filename()); markUsed(); renderResults();
   } finally { btn.disabled = false; btn.textContent = 'Download PNG'; }
 });
@@ -1718,7 +1718,7 @@ function carryStyle(from, to){
   return to;
 }
 $('#dlAllBtn').addEventListener('click', async () => {
-  if (!window.JSZip) { toast('The zip helper didn’t load — check the connection and reload.'); return; }
+  if (!window.JSZip) { toast('The zip helper didn’t load. Check the connection and reload.'); return; }
   const btn = $('#dlAllBtn'); btn.disabled = true; btn.textContent = 'Preparing…';
   const saved = snapshot(); const savedSel = S.sel; const w0 = W(), h0 = H();
   try {
@@ -1834,7 +1834,7 @@ function analyzeCaption(txt){
   const quoted = ((txt.match(/[“"]([^”"]{12,240})[”"]/) || [])[1] || '').trim();
   const tp = detectTopic(txt);
   const parentQuote = quoted && /parent|mom|dad|family|we see|our kids|my child|tell us/i.test(txt);
-  if (parentQuote) return { template:'quote', headline:'', sub:'', quote:'“' + quoted + '”', attr:'— a Spring Forth parent' };
+  if (parentQuote) return { template:'quote', headline:'', sub:'', quote:'“' + quoted + '”', attr:'A Spring Forth parent' };
   if (LIST_RE.test(txt)) { const q = (txt.match(/[^.!?\n]*(?:instead of|three questions|questions we)[^.!?\n]*/i)||[])[0];
     return { template:'list', headline:((q||'A few things to try').trim().replace(/[.:]?$/, ':')), items:[], sub:'', quote:'', attr:'' }; }
   if (quoted && quoted.length < 70) { const sgg = tp ? suggestText(tp) : { sub:'' }; return { template:'headline', headline:quoted, sub:sgg.sub || '', quote:'', attr:'' }; }
@@ -1856,7 +1856,7 @@ function parseLines(txt){
   const words = joined.split(/\s+/).filter(Boolean).length;
   const quoted = /^[“"']/.test(joined) || /[”"']$/.test(joined);
   if (!lines.length) return { template:'logo', headline:'', sub:'', quote:'', attr:'' };
-  if (quoted || words > 18) return { template:'quote', headline:'', sub:'', quote:joined, attr: attr || '— a Spring Forth parent' };
+  if (quoted || words > 18) return { template:'quote', headline:'', sub:'', quote:joined, attr: (attr || 'A Spring Forth parent').replace(/^[\u2014\u2013-]\s*/, '') };
   // a short phrase — on one line or broken over two or three — is a sticky-note card,
   // and the line breaks she typed are kept as written
   // an intro ending in a colon is a three-note list; lines after it become the notes
@@ -1947,19 +1947,19 @@ async function generate(){
       S.template = S.template === 'collage' ? 'headline' : 'note';
       if (!byId('headline')) { const sgg = suggestText(topic === 'any' ? 'values' : topic); S.els = [text('headline', sgg.headline)]; }
       await randomBackground(S.template);
-      toast('No photos in the library yet — made a paper card instead');
+      toast('No photos in the library yet, so this is a paper card');
     }
     randomStyle();
     if (!(await maybeAddPhoto())) {
       const hl = byId('headline')?.text || 'Learning By Doing';
       S.template = 'note'; S.els = [text('headline', hl)];
       templateDefaults(); layout();
-      toast('No photo to pair with that headline \u2014 made a note card instead');
+      toast('No photo to pair with that headline, so this is a note card');
     }
     currentDraftId = null;
     $('#gen').hidden = true;
     syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-    toast('Generated — press Generate again for another, or tweak this one');
+    toast('Generated. Press Generate again for another, or adjust this one.');
   } catch (err) {
     console.error(err); $('#genStatus').textContent = 'Couldn’t generate: ' + (err.message || err);
   } finally { btn.disabled = false; genBusy = false; }

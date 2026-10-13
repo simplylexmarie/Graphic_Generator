@@ -67,11 +67,11 @@ async function saveMonth(month){
   } catch (err) {
     if (/conflict/i.test(err.message) && err.data) {
       Object.assign(month, monthFromStore(err.data));
-      STORE.status = 'Someone else changed this month — showing their version';
-      toast('Someone else just edited ' + month.label + ' — reloaded their version. Make your change again.');
+      STORE.status = 'Someone else changed this month. Showing their version.';
+      toast('Someone else just edited ' + month.label + '. Showing their version, so make your change again.');
       renderCalendar(); return;
     }
-    STORE.status = 'Not saved — ' + err.message;
+    STORE.status = 'Not saved: ' + err.message;
   } finally {
     STORE.saving = false;
     if (STORE.pending) { const m = STORE.pending; STORE.pending = null; saveMonth(m); }
@@ -115,7 +115,7 @@ async function openDesign(p){
   finally { $('#loading').classList.remove('show'); }
   hideWelcome(); currentDraftId = null;
   syncControls(); renderInspector(); renderResults(); renderQuickFields(); fitCanvas();
-  toast('Opened the saved design for ' + postLabel(p) + ' \u2014 Save to ' + postLabel(p) + ' again when you\u2019re done');
+  toast('Opened the saved design for ' + postLabel(p) + '. Save to ' + postLabel(p) + ' again when you\u2019re done.');
 }
 function renderCalendarStatusOnly(){ const m = curMonth(); if (m && m.source === 'app') $('#calStatus').textContent = calStatusText(m); }
 
@@ -157,14 +157,14 @@ function calEditor(detail, p, month){
         h('div',{class:'ce-gbtns'},
           p.design ? h('button',{class:'btn sm',title:'Put this graphic back on the canvas to change it',onclick:()=>openDesign(p)}, 'Open design') : null,
           h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, STORE.app ? 'Full size' : 'View in Drive')))
-    : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
+    : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet. Make one, then choose Save to ' + postLabel(p) + '.');
   // what the client said: the post's status, then every note they left on it
   const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined', edited:'\u270e Client edited the graphic' };
   const notes = (p.clientComments || []).filter(c => c.note);
   const said = p.client || notes.length
     ? h('div',{class:'ce-client ' + (p.client ? p.client.decision : 'comment')},
-        p.client ? verdict[p.client.decision] + (p.client.name ? ' \u2014 ' + p.client.name : '') : 'Client feedback',
-        ...notes.slice(-5).map(c => h('div',{class:'ce-note'}, '\u201c' + c.note + '\u201d' + (c.name ? ' \u2014 ' + c.name : ''))))
+        p.client ? verdict[p.client.decision] + (p.client.name ? ', ' + p.client.name : '') : 'Client feedback',
+        ...notes.slice(-5).map(c => h('div',{class:'ce-note'}, '\u201c' + c.note + '\u201d' + (c.name ? ', ' + c.name : ''))))
     : null;
   detail.append(h('div',{class:'ce'},
     said, graphic,
@@ -184,9 +184,9 @@ function monthTools(detail, month){
     h('button',{class:'btn sm',title:'Add a post on another date',onclick:()=>addPost(month)}, '+ Add a post'),
     h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
     STORE.app
-      ? h('button',{class:'btn sm primary',title:'A private link where the client sees each post with its graphic and approves it or asks for changes',onclick:()=>reviewLink(month)}, '\u{1F517} Send for client review')
-      : h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, '\u{1F4C4} Client report (Sheet)'),
-    h('button',{class:'btn sm',title:'The same report as a page to save as PDF and email',onclick:()=>printReport(month)}, '\u{1F5A8} Printable report'),
+      ? h('button',{class:'btn sm primary',title:'A private link where the client sees each post with its graphic and approves it or asks for changes',onclick:()=>reviewLink(month)}, 'Send for client review')
+      : h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, 'Client report (Sheet)'),
+    h('button',{class:'btn sm',title:'The same report as a page to save as PDF and email',onclick:()=>printReport(month)}, 'Printable report'),
     h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:month.approved, onchange:e=>{ month.approved = e.target.checked; touchMonth(month); renderCalendar(); }}), ' Month approved')));
 }
 
@@ -201,7 +201,7 @@ function addPost(month){
 function copyForSheet(month){
   const q = s => '"' + String(s || '').replace(/"/g, '""') + '"';
   const rows = month.posts.map(p => [(p.date.getMonth()+1) + '/' + p.date.getDate() + '/' + p.date.getFullYear(), p.bucket, p.noHead ? 'x' : p.hook, '', q(p.post)].join('\t'));
-  navigator.clipboard.writeText(rows.join('\n')).then(() => toast('Copied ' + rows.length + ' rows — click the first DATE cell in the sheet and paste'),
+  navigator.clipboard.writeText(rows.join('\n')).then(() => toast('Copied ' + rows.length + ' rows. Click the first DATE cell in the sheet and paste.'),
     () => toast('Couldn’t copy'));
 }
 
@@ -231,8 +231,8 @@ function openDraftForm(){
   const cfgDays = (calCfg() && calCfg().postDays) || ['Mon','Wed'];
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(dn => h('label',{class:'ce-check'}, h('input',{type:'checkbox', value:dn, checked:cfgDays.includes(dn)}), ' ' + dn));
   const notes = h('textarea',{rows:3, placeholder:'Events, deadlines, holidays, things to emphasise or avoid… (optional)'});
-  const go = h('button',{class:'btn gen sm'}, '✨ Draft it');
-  const st = h('p',{class:'hint'}, STORE.guide ? 'Uses the messaging guide in the Drive folder and recent posts for the voice.' : 'No messaging guide in the Drive folder yet — it will go by recent posts for the voice.');
+  const go = h('button',{class:'btn gen sm'}, 'Draft it');
+  const st = h('p',{class:'hint'}, STORE.guide ? 'Drafts follow the messaging guide and recent posts for the voice.' : 'No messaging guide yet, so drafts will follow recent posts for the voice.');
   go.onclick = async () => {
     const [y, m] = month.value.split('-').map(Number);
     const pick = days.map(l => l.querySelector('input')).filter(i => i.checked).map(i => i.value);
@@ -278,7 +278,7 @@ async function draftMonth(y, m, pickDays, notes, progress){
   progress('Saving…');
   await saveMonth(month);
   renderCalendar();
-  toast(month.label + ' drafted — ' + month.posts.length + ' posts. Review and edit them in the calendar.');
+  toast(month.label + ' drafted: ' + month.posts.length + ' posts. Review and edit them in the calendar.');
 }
 
 async function rewritePost(p, month){
@@ -292,7 +292,7 @@ async function rewritePost(p, month){
       post: { iso:p.iso, bucket:p.bucket, hook:p.hook, post:p.post, photoIdea:p.photoIdea } }, false);
     const x = (j.posts || [])[0]; if (!x) throw new Error('nothing came back');
     Object.assign(p, { bucket:x.bucket, hook: p.noHead ? '' : x.hook, post:x.post, photoIdea:x.photoIdea, approved:false });
-    touchMonth(month); renderCalendar(); toast('Rewritten — have a look');
+    touchMonth(month); renderCalendar(); toast('Rewritten. Have a look.');
   } catch (err) { toast('Couldn’t rewrite: ' + err.message); }
 }
 
@@ -332,7 +332,7 @@ async function reportSheet(month){
     month.reportUrl = j.url; touchMonth(month);
     try { await navigator.clipboard.writeText(j.url); } catch {}
     window.open(j.url, '_blank', 'noopener');
-    toast('Report ready \u2014 the link is copied. Anyone with it can view and comment.');
+    toast('Report ready and the link is copied. Anyone with it can view and comment.');
   } catch (err) { toast('Couldn\u2019t build the report: ' + err.message); }
 }
 
@@ -342,7 +342,7 @@ function printReport(month){
     <td class="d"><b>${esc(r.day)}</b><br>${esc(r.date)}<div class="b">${esc(r.bucket)}</div></td>
     <td class="g">${r.src ? `<img src="${/^\//.test(r.src) ? location.origin + r.src : r.src}" alt="">` : '<div class="none">Graphic coming</div>'}</td>
     <td class="t">${r.hook ? `<div class="h">${esc(r.hook)}</div>` : '<div class="h muted">Photo only</div>'}<div class="p">${esc(r.post).replace(/\n/g, '<br>')}</div></td></tr>`).join('');
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(clientFull())} \u2014 ${esc(month.label)} social calendar</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(clientFull())}: ${esc(month.label)} social calendar</title>
 <meta name="robots" content="noindex">
 <style>
   body{font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#1d2a30;margin:32px;background:#fff}
@@ -356,7 +356,7 @@ function printReport(month){
   .h{font-weight:700;font-size:15px;margin-bottom:6px} .muted{color:#90a4ae;font-weight:400} .p{white-space:normal}
   @media print{ .bar{display:none} body{margin:12mm} }
 </style></head><body>
-<h1>${esc(clientFull())} \u2014 ${esc(month.label)} social calendar</h1>
+<h1>${esc(clientFull())}: ${esc(month.label)} social calendar</h1>
 <p class="sub">${month.posts.length} posts \u00b7 prepared ${new Date().toLocaleDateString(undefined, { month:'long', day:'numeric', year:'numeric' })}</p>
 <div class="bar"><button onclick="print()">Save as PDF / Print</button></div>
 <table>${rows}</table></body></html>`;
@@ -373,7 +373,7 @@ async function reviewLink(month){
     const j = await drivePost({ action:'review.create', client:STUDIO.name, month: storeKey(month.y, month.m) }, false);
     try { await navigator.clipboard.writeText(j.url); } catch {}
     window.open(j.url, '_blank', 'noopener');
-    toast('Review link copied \u2014 send it to the client. Their answers appear on each post here.');
+    toast('Review link copied. Send it to the client, and their answers will appear on each post here.');
   } catch (err) { toast('Couldn\u2019t make the link: ' + err.message); }
 }
 
@@ -393,7 +393,7 @@ async function guideControls(box){
     }});
     row.replaceChildren(h('label',{}, 'Messaging guide'),
       h('div',{class:'ce-row ce-actions'},
-        g ? h('a',{href:g.url, target:'_blank', rel:'noopener', class:'btn link'}, g.name) : h('span',{class:'hint'}, 'None yet \u2014 drafts will go by recent posts.'),
+        g ? h('a',{href:g.url, target:'_blank', rel:'noopener', class:'btn link'}, g.name) : h('span',{class:'hint'}, 'None yet. Drafts will follow recent posts.'),
         h('button',{class:'btn sm', onclick:()=>input.click()}, g ? 'Replace' : 'Upload (PDF or text)'), input));
   };
   show();

@@ -198,6 +198,7 @@ function systemBlocks(b) {
     'audience and recurring programs in practice. Match how they sound.\n\n' +
     'Facts: never invent events, dates, names, statistics, prices or quotes. You may mention programs and traditions that ' +
     'appear in the guide or the past posts. When a post needs a detail you do not have, write [CONFIRM: what is needed] in its place.\n\n' +
+    'Style: never use em dashes. Use commas, periods, colons or parentheses instead.\n\n' +
     'Each post has: a bucket (one of: ' + b.buckets.join(', ') + '); a hook, the headline printed on the graphic, 3 to 10 words, ' +
     'no hashtags or emojis; the caption, written like the past posts, usually 60 to 150 words, short paragraphs, ending with a clear ' +
     'call to action, hashtags only if the past posts use them; and a photo idea, one short line describing an ordinary photo from ' +

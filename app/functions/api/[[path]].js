@@ -196,7 +196,7 @@ const POST_SCHEMA = {
 function fakePosts(b) {
   if (b.post) return [Object.assign({}, b.post, { post: '(rewritten: ' + b.instruction + ') ' + b.post.post })];
   return b.dates.map((d, i) => ({ iso: d.iso, bucket: (b.buckets || ['Post'])[((b.already || []).length + i) % (b.buckets || ['Post']).length],
-    hook: 'Sample hook for ' + d.iso.slice(5), post: 'Sample post for ' + d.iso + (b.notes ? ' \u2014 ' + b.notes : '') + '.\n\nCall to action.',
+    hook: 'Sample hook for ' + d.iso.slice(5), post: 'Sample post for ' + d.iso + (b.notes ? '. ' + b.notes : '') + '.\n\nCall to action.',
     photoIdea: 'a child reading a book at a table' }));
 }
 
@@ -211,6 +211,7 @@ async function claude(env, b, userText, maxTokens) {
     'audience and recurring programs in practice. Match how they sound.\n\n' +
     'Facts: never invent events, dates, names, statistics, prices or quotes. You may mention programs and traditions that appear ' +
     'in the guide or the past posts. When a post needs a detail you do not have, write [CONFIRM: what is needed] in its place.\n\n' +
+    'Style: never use em dashes. Use commas, periods, colons or parentheses instead.\n\n' +
     'Each post has: a bucket (one of: ' + (b.buckets || []).join(', ') + '); a hook, the headline printed on the graphic, 3 to 10 ' +
     'words, no hashtags or emojis; the caption, written like the past posts, usually 60 to 150 words, short paragraphs, ending with ' +
     'a clear call to action, hashtags only if the past posts use them; and a photo idea, one short line describing an ordinary photo ' +
@@ -246,7 +247,7 @@ async function claude(env, b, userText, maxTokens) {
     });
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError) throw new Error('The Anthropic API key was rejected');
-    if (err instanceof Anthropic.RateLimitError) throw new Error('Claude is busy right now — try again in a minute');
+    if (err instanceof Anthropic.RateLimitError) throw new Error('Claude is busy right now. Try again in a minute.');
     if (err instanceof Anthropic.APIError) throw new Error('Claude API error ' + err.status + ': ' + err.message);
     throw err;
   }
@@ -318,7 +319,7 @@ async function reviewDesign(env, t, postId) {
   const data = await monthData(env, r.client, r.month);
   const post = data && (data.posts || []).find(p => p.id === postId);
   if (!post || !post.design || !post.design.state) return { ok: false, error: 'This graphic can’t be edited here' };
-  return { ok: true, design: post.design, label: r.client + ' \u2014 ' + post.iso };
+  return { ok: true, design: post.design, label: r.client + ', ' + post.iso };
 }
 
 /** b: { t, postId, png (base64), design, name } — the client's edited graphic replaces the post's */

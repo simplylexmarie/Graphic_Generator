@@ -30,7 +30,7 @@ async function clientEditStart(){
     if (d.src && d.src.url) IMG.bg = await load(d.src.url);
     await Promise.all(S.els.filter(e => e.type === 'image').map(e => load(e.src).catch(() => null)));
     if (S.bg.cells) await Promise.all(S.bg.cells.map(c => load(c.url).catch(() => null)));
-    document.title = 'Edit graphic — ' + j.label;
+    document.title = 'Edit graphic: ' + j.label;
   } catch (err) {
     bar.querySelector('.client-bar-text span').textContent = err.message;
     $('#clientSave').disabled = true;

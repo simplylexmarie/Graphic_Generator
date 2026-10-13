@@ -47,7 +47,7 @@ async function generateFromPost(){
     applyOption(0, false);
     renderOptions();
     renderCalendar();
-    toast('Three options for ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() + ' — pick one under Options for this post');
+    toast('Three options for ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() + '. Pick one under Options for this post.');
   } catch (err) { console.error(err); toast('Couldn’t generate: ' + (err.message || err)); }
   finally { $('#loading').classList.remove('show'); genBusy = false; updateCalGen(); }
 }
@@ -80,8 +80,8 @@ function updateCalGen(){
   // options made for one post shouldn't linger once another post is picked
   if (CTX.options.length && (!p || p.iso !== CTX.iso)) { CTX.options = []; CTX.on = -1; renderOptions(); }
   b.disabled = !p || genBusy;
-  b.textContent = '\u{1F4C5} Generate from calendar' + (p ? ' \u00b7 ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() : '');
-  b.title = p ? 'Build three graphics matched to this post: ' + (p.bucket || 'post') + ' — ' + (p.noHead ? 'photo only' : p.hook || 'no hook text yet') : 'Pick a post in the calendar first';
+  b.textContent = 'Generate from calendar' + (p ? ' \u00b7 ' + DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate() : '');
+  b.title = p ? 'Build three graphics matched to this post: ' + (p.bucket || 'post') + ': ' + (p.noHead ? 'photo only' : p.hook || 'no hook text yet') : 'Pick a post in the calendar first';
 }
 
 $('#calGen').addEventListener('click', generateFromPost);
@@ -93,6 +93,6 @@ $('#optsClose').addEventListener('click', () => { CTX.options = []; CTX.on = -1;
 window.addEventListener('load', () => {
   if (!calCfg()) return;
   const g = $('#genBtn'); if (!g || !STUDIO.specsFor) return;
-  g.classList.remove('gen'); g.textContent = '\u2728 Random';
-  g.title = 'Build a graphic from your own text with a random photo, look and layout \u2014 not tied to the calendar';
+  g.classList.remove('gen'); g.textContent = 'Random';
+  g.title = 'Build a graphic from your own text with a random photo, look and layout, not tied to the calendar';
 });

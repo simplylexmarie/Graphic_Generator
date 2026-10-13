@@ -35,17 +35,17 @@ const BANK = {
   design:  { label:'Engineering',    heads:['Application drives the design','Great motor programs start before production','The problem isn’t always the motor.','One speed is rarely enough','Variable-speed EC motors give designers more room to work'],
              subs:['Custom-engineered for your application.','Design support from prototype to production.','Right motor, right spec, first time.','We engineer around what the motor has to survive.'] },
   cost:    { label:'Cost & supply',  heads:['The cheapest motor isn’t always the most cost efficient choice.','The real cost of a foreign motor','Supply chain integrity','Protect margins while expectations rise'],
-             subs:['Freight, tariffs, buffer inventory, downtime — add it up.','Total cost of ownership, not unit price.','American-made components you can trace.','Fewer surprises between order and delivery.'] },
+             subs:['Freight, tariffs, buffer inventory, downtime. Add it up.','Total cost of ownership, not unit price.','American-made components you can trace.','Fewer surprises between order and delivery.'] },
   comply:  { label:'Compliance',     heads:['UFLPA and Section 307 of the Tariff Act Compliant','UL 5VA Testing Compliant','Made in the USA','Set your products apart with American-made components'],
              subs:['Documentation ready when your customers ask.','Compliance built into the process, not bolted on.','Traceable, tested, certified.'] },
   heritage:{ label:'Heritage & team', heads:['Over 150 million motors sold since 1976','Powering people’s lives.','50 years of precision','Meet the people behind the motors'],
              subs:['Family-owned. Precision-built. Since 1976.','Fifty years of motors that just work.','The team that builds, tests, and ships every motor.'] },
 };
 const SEASONAL_LINES = {
-  spring:['Spring build season is here — lock in lead times now.','Plan the second half now, while capacity is open.'],
-  summer:['Heat is hard on motors — spec for the conditions.','Mid-year is the time to firm up Q4 programs.'],
+  spring:['Spring build season is here. Lock in lead times now.','Plan the second half now, while capacity is open.'],
+  summer:['Heat is hard on motors. Spec for the conditions.','Mid-year is the time to firm up Q4 programs.'],
   autumn:['Year-end programs start with locked lead times.','Plan next year’s motor program before the rush.'],
-  winter:['Cold starts, tight schedules — reliability matters most now.','New year, new programs: let’s talk lead times.'],
+  winter:['Cold starts and tight schedules: reliability matters most now.','New year, new programs: let’s talk lead times.'],
 };
 const SEASON_NAME = _m >= 8 && _m <= 10 ? 'autumn' : _m >= 11 || _m <= 1 ? 'winter' : _m <= 4 ? 'spring' : 'summer';
 let topic = 'any';
@@ -97,7 +97,7 @@ function analyzeCaption(txt){
     return { template:'event', headline:title, sub: details || 'Details in the caption', quote:'', attr:'' };
   }
   const isQuote = /customer (said|wrote)|testimonial|review|feedback from/i.test(txt) && quoted;
-  if (isQuote) return { template:'review', headline:'', sub:'', quote:'“' + quoted + '”', attr:'— a McMillan customer' };
+  if (isQuote) return { template:'review', headline:'', sub:'', quote:'“' + quoted + '”', attr:'A McMillan customer' };
   if (quoted && quoted.length < 60) { const sgg = tp ? suggestText(tp) : { sub:'' }; return { template:'headline', headline:quoted, sub:sgg.sub || '', quote:'', attr:'' }; }
   if (tp) { const sgg = suggestText(tp); return { template:'headline', headline:sgg.headline, sub:sgg.sub, quote:'', attr:'' }; }
   return { template:'logo', headline:'', sub:'', quote:'', attr:'' };
@@ -118,7 +118,7 @@ function parseLines(txt){
   const quoted = /^[“"']/.test(joined) || /[”"']$/.test(joined);
   const eventish = /(\d{1,2}:\d{2}|\b\d{1,2}\s*(am|pm)\b|\b(mon|tues|wednes|thurs|fri|satur|sun)day\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}|\b\d{1,2}(st|nd|rd|th)\b|\brsvp\b|\bbooth\b)/i.test(body.slice(1).join(' '));
   const template = !lines.length ? 'logo' : (quoted || (words > 20 && !eventish)) ? 'review' : eventish ? 'event' : 'headline';
-  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: attr || '— a McMillan customer' };
+  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: (attr || 'A McMillan customer').replace(/^[\u2014\u2013-]\s*/, '') };
 }
 
 // Background choice: generated art (always available) or a photo from the library when there is one.
@@ -213,14 +213,14 @@ async function generate(){
       const sgg = suggestText(topic === 'any' ? 'quality' : topic);
       S.template = 'headline'; S.els = [text('headline', sgg.headline)]; if (sgg.sub) S.els.push(text('sub', sgg.sub));
       layout(); await randomBackground('headline', { headline: sgg.headline });
-      toast('Green art always carries a message \u2014 added a headline');
+      toast('Green art always carries a message, so a headline was added');
     }
     randomStyle(measureLum());
     await maybeAddProduct();
     currentDraftId = null;
     $('#gen').hidden = true;
     syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-    toast('Generated — press Generate again for another, or tweak this one');
+    toast('Generated. Press Generate again for another, or adjust this one.');
   } catch (err) {
     console.error(err); $('#genStatus').textContent = 'Couldn’t generate: ' + (err.message || err);
   } finally { btn.disabled = false; genBusy = false; }

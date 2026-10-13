@@ -214,7 +214,7 @@ async function load(){
   try { DATA = await (await fetch('/api/review?t=' + encodeURIComponent(T))).json(); }
   catch { return fail('Couldn’t load the calendar. Check your connection and try again.'); }
   if (!DATA.ok) return fail(DATA.error || 'This link isn’t valid.');
-  document.title = DATA.clientFull + ' — ' + DATA.label + ' content calendar';
+  document.title = DATA.clientFull + ': ' + DATA.label + ' content calendar';
   $('#client').textContent = DATA.clientFull;
   $('#sub').textContent = DATA.label + ' · ' + DATA.posts.length + ' posts for your review';
   $('#mlabel').textContent = DATA.label;
@@ -244,7 +244,7 @@ function render(){
   $('#filters').replaceChildren(...FILTERS.filter(([k]) => k !== 'edited' || n.edited).map(([k, label]) => el('button', { 'aria-pressed':String(FILTER === k), onclick:() => { FILTER = k; render(); } },
     label + (k === 'all' ? '' : ' ' + n[k]))));
   const list = shown();
-  $('#main').replaceChildren(!list.length ? el('div', { class:'empty' }, 'Nothing here — try another filter.')
+  $('#main').replaceChildren(!list.length ? el('div', { class:'empty' }, 'Nothing here. Try another filter.')
     : VIEW === 'cal' ? calendar(list) : rows(list));
   if (OPEN >= 0) openPost(OPEN, true);
 }
@@ -285,7 +285,7 @@ function rows(list){
       el('div', {},
         el('div', { class:'when' }, el('b', {}, longDay(p.iso)), p.bucket ? el('span', { class:'chip' }, p.bucket) : null, pill(p),
           (p.thread || []).length ? el('span', { class:'count' }, p.thread.length + ' note' + (p.thread.length === 1 ? '' : 's')) : null),
-        p.hook ? el('div', { class:'hook' }, p.hook) : el('div', { class:'hook muted' }, 'Photo only — no headline on the graphic'),
+        p.hook ? el('div', { class:'hook' }, p.hook) : el('div', { class:'hook muted' }, 'Photo only, no headline on the graphic'),
         el('div', { class:'copy' }, p.post || ''))));
   });
   return el('section', { class:'list' }, ...out);
@@ -334,7 +334,7 @@ function openPost(i, keep){
       el('div', { class:'right' },
         el('div', { class:'top' },
           el('div', {}, el('div', { class:'eyebrow' }, longDay(p.iso)),
-            el('h3', { id:'dlgTitle' }, p.hook || 'Photo only — no headline')),
+            el('h3', { id:'dlgTitle' }, p.hook || 'Photo only, no headline')),
           el('button', { class:'x', onclick:closePost, 'aria-label':'Close' }, '✕')),
         el('div', { class:'chips' }, p.bucket ? el('span', { class:'chip' }, p.bucket) : null, pill(p)),
         el('div', { class:'caption' }, p.post || ''),

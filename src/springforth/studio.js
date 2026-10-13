@@ -123,7 +123,7 @@ function captionQuote(post){
   if (!q) return null;
   const leads = /^\s*[“"]/.test(t);
   if (!leads && !/parent|mom|dad|family|our (?:kids|children)|my (?:child|son|daughter)/i.test(t)) return null;
-  return { quote: '“' + q.trim() + '”', attr: '— a Spring Forth parent' };
+  return { quote: '“' + q.trim() + '”', attr: 'A Spring Forth parent' };
 }
 
 // Build one complete graphic into S/IMG and hand back what's needed to put it back later.

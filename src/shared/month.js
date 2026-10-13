@@ -36,7 +36,7 @@ async function generateMonth(){
     MONTH.key = m.key; MONTH.label = m.label; MONTH.items = items; MONTH.on = -1;
     CTX.options = []; CTX.on = -1; renderOptions();
     openMonthItem(0, false);
-    toast(items.length + ' graphics for ' + m.label + ' — click any of them on the right to adjust it');
+    toast(items.length + ' graphics for ' + m.label + '. Click any of them on the right to adjust it.');
   } catch (err) { console.error(err); toast('Couldn’t build the month: ' + (err.message || err)); }
   finally { $('#loading').classList.remove('show'); $('#loading').textContent = 'Loading photo…'; btn.disabled = false; genBusy = false; updateCalGen(); }
 }
@@ -67,7 +67,7 @@ function renderMonth(){
   $('#monthTitle').textContent = MONTH.label;
   const grid = $('#monthGrid'); grid.innerHTML = '';
   MONTH.items.forEach((it, i) => grid.append(h('button',{class:'opt','aria-pressed':String(i === MONTH.on),
-    title:(it.p.bucket || 'Post') + ' — ' + (it.p.noHead ? 'photo only' : it.p.hook || 'no hook text'), onclick:()=>openMonthItem(i)},
+    title:(it.p.bucket || 'Post') + ': ' + (it.p.noHead ? 'photo only' : it.p.hook || 'no hook text'), onclick:()=>openMonthItem(i)},
     h('img',{src:it.built.thumb, alt:''}), h('span',{}, (isDone(it.p) ? '✓ ' : '') + postLabel(it.p)))));
   $('#monthDrive').hidden = !driveCfg();
 }
@@ -86,12 +86,12 @@ function captionsText(){
   return MONTH.items.map(({ p }) => [
     postLabel(p) + ' · ' + (p.bucket || ''),
     'Graphic: ' + postFilename(p),
-    p.noHead ? 'Headline: (none — photo only)' : 'Headline: ' + (p.hook || '(from the phrase bank)'),
+    p.noHead ? 'Headline: none (photo only)' : 'Headline: ' + (p.hook || '(from the phrase bank)'),
     '', p.post || '', '', '----------', ''].join('\n')).join('\n');
 }
 
 async function downloadMonth(){
-  if (!window.JSZip) { toast('The zip helper didn’t load — check the connection and reload.'); return; }
+  if (!window.JSZip) { toast('The zip helper didn’t load. Check the connection and reload.'); return; }
   keepCurrentInMonth();
   const btn = $('#monthZip'); btn.disabled = true; btn.textContent = 'Preparing…';
   try {
@@ -125,7 +125,7 @@ async function drivePost(body, ask = true){
   const r = await fetch(cfg.driveEndpoint, { method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
     body: JSON.stringify(Object.assign({ passcode }, body)) });
   const j = await r.json();
-  if (!j.ok && j.error === 'passcode') { try { localStorage.removeItem(DRIVE_PASS_KEY); } catch {} throw new Error('That passcode didn’t work — try again'); }
+  if (!j.ok && j.error === 'passcode') { try { localStorage.removeItem(DRIVE_PASS_KEY); } catch {} throw new Error('That passcode didn’t work. Try again.'); }
   if (!j.ok) { const e = new Error(j.error || 'Drive said no'); e.data = j.data; throw e; }
   return j;
 }
@@ -175,7 +175,7 @@ async function saveMonthToDrive(){
     saveCalDone();
     toast('All ' + done + ' graphics are in Drive and on the calendar');
   } catch (err) { saveCalDone(); toast('Saved ' + done + ', then stopped: ' + (err.message || err)); }
-  finally { btn.disabled = false; btn.textContent = '☁ Save all to Drive'; renderCalendar(); renderMonth(); render(); }
+  finally { btn.disabled = false; btn.textContent = 'Save all to Drive'; renderCalendar(); renderMonth(); render(); }
 }
 
 // Checkmarks come from what is actually in the Drive folder, so every browser agrees.

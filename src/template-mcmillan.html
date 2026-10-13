@@ -279,7 +279,7 @@ canvas#c.dragging{cursor:grabbing}
       <div class="row"><label for="fade">Strength</label><input type="range" id="fade" min="0" max="90" value="45"></div>
       <div class="row"><label for="fadeSize">Height</label><input type="range" id="fadeSize" min="15" max="90" value="55"></div>
       <div class="row"><label>Color</label><div class="swatches" id="fadeColor"></div></div>
-      <p class="hint">Shading directly behind the logo or a text block is separate — click the logo or text to set it.</p>
+      <p class="hint">Shading directly behind the logo or a text block is separate. Click the logo or text to set it.</p>
     </div>
   </aside>
 
@@ -287,7 +287,7 @@ canvas#c.dragging{cursor:grabbing}
     <div class="toolbar">
       <span class="hint">Click anything on the graphic to select it. Drag to move · corners to resize · <span class="kbd">←↑↓→</span> nudge · <span class="kbd">⌫</span> remove</span>
       <span class="spacer"></span>
-      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>
+      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">Generate</button>
       <button class="btn sm" id="shufPhoto" title="Keep the text, try a different background">Shuffle background</button>
       <button class="btn sm" id="shufLook" title="Keep the photo, try a different look and layout">Shuffle look</button>
       <button class="btn sm" id="collageQuick" title="Generate a photo collage with the logo plate">⊞ Collage</button>
@@ -302,8 +302,8 @@ canvas#c.dragging{cursor:grabbing}
         <div class="welcome-card">
           <div class="kicker">McMillan studio</div>
           <h2>Welcome!</h2>
-          <p>Press Generate and get a finished graphic in one click — then change anything you like. Or pick a template on the left to build one yourself.</p>
-          <button class="btn gen big ping" id="welcomeGen">✨ Generate</button>
+          <p>Press Generate and get a finished graphic in one click, then change anything you like. Or pick a template on the left to build one yourself.</p>
+          <button class="btn gen big ping" id="welcomeGen">Generate</button>
           <button class="btn link alt" id="welcomeSkip">Start from a template instead</button>
         </div>
       </div>
@@ -331,7 +331,7 @@ canvas#c.dragging{cursor:grabbing}
     <h2>Generate a graphic</h2>
     <p>Type the headline (first line) and an optional subline. A value like <b>INTEGRITY:</b> plus its explanation becomes a statement card. Add a date or time for an event. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>
     <div class="chips" id="topicChips" style="margin-bottom:6px"></div>
-    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">✎ Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
+    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
     <div class="field"><textarea id="genText" placeholder="QUALITY:&#10;Investing in people, systems, and testing so motors do their job quietly for years.&#10;&#10;…or paste the whole caption here"></textarea></div>
     <div class="row" style="margin-bottom:0"><label>Template</label>
       <div class="seg" id="genTpl">
@@ -468,8 +468,8 @@ function layout(){
     }
   }
   else if (S.template === 'review') {
-    const q = byId('quote')?.text ?? '“McMillan has been a dependable partner for our motor programs — realistic lead times, consistent quality, and people who pick up the phone.”';
-    const a = byId('attr')?.text ?? '— OEM engineering manager';
+    const q = byId('quote')?.text ?? '“McMillan has been a dependable partner for our motor programs: realistic lead times, consistent quality, and people who pick up the phone.”';
+    const a = byId('attr')?.text ?? 'OEM engineering manager';
     const bx = 0.07*w, bw = 0.86*w, by = wide ? 0.10*h : 0.09*h, bh = wide ? 0.66*h : 0.58*h;
     els.push({ id:'box', type:'box', x:bx, y:by, w:bw, h:bh, fill:'#034226', alpha:0.9, label:'CUSTOMER FEEDBACK', labelFill:'#00d66b', labelColor:'#034226', kids:['quote','attr'] });
     const pad = 0.05*w;
@@ -783,7 +783,7 @@ function autoContrast(announce){
   const L = LOOKS[S.look];
   const lum = measureLum();
   if (L.dark) {
-    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark — green text may be hard to read. Try “White on photo”.');
+    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark, so green text may be hard to read. Try “White on photo”.');
   } else {
     // bright photo → more darkening & fade; dark photo → almost none
     // house style: a uniform tint of roughly 25-50% depending on how bright the photo is
@@ -896,7 +896,7 @@ async function setTemplate(t){
   else if (S.bg.kind === 'collage') { S.bg.kind = 'art'; S.bg.cells = null; }
   if (t === 'logo' && S.bg.kind === 'art') {
     const r = await randomBackground('logo', {});
-    if (r === 'none') toast('Logo-only graphics use a photo \u2014 the library is empty, so upload one below');
+    if (r === 'none') toast('Logo-only graphics use a photo. The library is empty, so upload one below.');
   }
   templateDefaults(); layout(); if (IMG.bg && S.bg.kind === 'photo') autoContrast(false);
   syncControls(); renderInspector(); renderResults(); render();
@@ -1116,12 +1116,12 @@ function renderKindChips(){
 function renderResults(){
   const box = $('#results'); box.innerHTML = '';
   let list;
-  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet — hover an image and click ☆.'; }
-  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet — images show up here after you download a graphic using them.'; }
+  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet. Hover an image and click ☆.'; }
+  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet. Images show up here after you download a graphic using them.'; }
   else {
     renderKindChips();
     list = LIB.filter(p => libKind === 'all' || p.kind === libKind);
-    $('#rstatus').textContent = LIB.length ? `${list.length} image${list.length===1?'':'s'} in the McMillan library` : 'The image library is empty — ask Alexia to add McMillan’s photos. You can still upload one below.';
+    $('#rstatus').textContent = LIB.length ? `${list.length} image${list.length===1?'':'s'} in the McMillan library` : 'The image library is empty. Ask Alexia to add McMillan’s photos. You can still upload one below.';
   }
   $('#kindChips').hidden = tab !== 'lib';
   for (const p of list) {
@@ -1170,7 +1170,7 @@ function setArt(style, newSeed){
   if (S.template === 'logo' || S.template === 'collage') {
     const sgg = suggestText('quality');
     S.template = 'headline'; S.els = [text('headline', sgg.headline)]; if (sgg.sub) S.els.push(text('sub', sgg.sub));
-    toast('Green art always carries a message \u2014 added a headline you can edit');
+    toast('Green art always carries a message, so a headline was added for you to edit');
   }
   if (newSeed || !S.bg.seed) S.bg.seed = Math.floor(Math.random()*100000) + 1;
   IMG.src = { kind:'art', art:S.bg.art, seed:S.bg.seed };
@@ -1213,7 +1213,7 @@ $('#collageQuick').addEventListener('click', async () => {
   if (r === 'none') { toast('A collage needs at least 3 library photos'); return; }
   S.template = 'collage'; S.frame = 'none'; currentDraftId = null;
   templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-  toast('Collage \u2014 press again for another mix');
+  toast('Collage. Press again for another mix.');
 });
 
 // ---------- own photo ----------
@@ -1257,7 +1257,7 @@ document.addEventListener('paste', e => {
 function loadDrafts(){ try { return JSON.parse(localStorage.getItem(LS.drafts)||'[]'); } catch { return []; } }
 function storeDrafts(list){
   try { localStorage.setItem(LS.drafts, JSON.stringify(list)); return true; }
-  catch { toast('Browser storage is full — delete an old draft (ones with uploaded photos take the most room).'); return false; }
+  catch { toast('Browser storage is full. Delete an old draft (ones with uploaded photos take the most room).'); return false; }
 }
 function draftName(){
   if (S.template === 'headline' || S.template === 'event') return byId('headline')?.text || 'Headline';
@@ -1296,7 +1296,7 @@ async function openDraft(d, asCopy){
   } catch { toast('An image for this draft couldn’t be loaded'); }
   finally { $('#loading').classList.remove('show'); }
   syncControls(); renderInspector(); renderResults(); fitCanvas(); renderDrafts();
-  toast(asCopy ? 'Opened a copy — save it to keep it as its own draft' : `Opened “${d.name}”`);
+  toast(asCopy ? 'Opened a copy. Save it to keep it as its own draft.' : `Opened “${d.name}”`);
 }
 function deleteDraft(id){
   const list = loadDrafts(); const d = list.find(x => x.id === id);
@@ -1369,7 +1369,7 @@ $('#dlBtn').addEventListener('click', async () => {
   try {
     await fontsReady();
     let blob;
-    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here — try picking it again or uploading it.'); return; }
+    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here. Try picking it again or uploading it.'); return; }
     saveBlob(blob, filename()); markUsed(); if (tab !== 'search') renderResults();
   } finally { btn.disabled = false; btn.textContent = 'Download PNG'; }
 });
@@ -1385,7 +1385,7 @@ function carryStyle(from, to){
   return to;
 }
 $('#dlAllBtn').addEventListener('click', async () => {
-  if (!window.JSZip) { toast('The zip helper didn’t load — check the connection and reload.'); return; }
+  if (!window.JSZip) { toast('The zip helper didn’t load. Check the connection and reload.'); return; }
   const btn = $('#dlAllBtn'); btn.disabled = true; btn.textContent = 'Preparing…';
   const saved = snapshot(); const savedSel = S.sel; const w0 = W(), h0 = H();
   try {
@@ -1459,17 +1459,17 @@ const BANK = {
   design:  { label:'Engineering',    heads:['Application drives the design','Great motor programs start before production','The problem isn’t always the motor.','One speed is rarely enough','Variable-speed EC motors give designers more room to work'],
              subs:['Custom-engineered for your application.','Design support from prototype to production.','Right motor, right spec, first time.','We engineer around what the motor has to survive.'] },
   cost:    { label:'Cost & supply',  heads:['The cheapest motor isn’t always the most cost efficient choice.','The real cost of a foreign motor','Supply chain integrity','Protect margins while expectations rise'],
-             subs:['Freight, tariffs, buffer inventory, downtime — add it up.','Total cost of ownership, not unit price.','American-made components you can trace.','Fewer surprises between order and delivery.'] },
+             subs:['Freight, tariffs, buffer inventory, downtime. Add it up.','Total cost of ownership, not unit price.','American-made components you can trace.','Fewer surprises between order and delivery.'] },
   comply:  { label:'Compliance',     heads:['UFLPA and Section 307 of the Tariff Act Compliant','UL 5VA Testing Compliant','Made in the USA','Set your products apart with American-made components'],
              subs:['Documentation ready when your customers ask.','Compliance built into the process, not bolted on.','Traceable, tested, certified.'] },
   heritage:{ label:'Heritage & team', heads:['Over 150 million motors sold since 1976','Powering people’s lives.','50 years of precision','Meet the people behind the motors'],
              subs:['Family-owned. Precision-built. Since 1976.','Fifty years of motors that just work.','The team that builds, tests, and ships every motor.'] },
 };
 const SEASONAL_LINES = {
-  spring:['Spring build season is here — lock in lead times now.','Plan the second half now, while capacity is open.'],
-  summer:['Heat is hard on motors — spec for the conditions.','Mid-year is the time to firm up Q4 programs.'],
+  spring:['Spring build season is here. Lock in lead times now.','Plan the second half now, while capacity is open.'],
+  summer:['Heat is hard on motors. Spec for the conditions.','Mid-year is the time to firm up Q4 programs.'],
   autumn:['Year-end programs start with locked lead times.','Plan next year’s motor program before the rush.'],
-  winter:['Cold starts, tight schedules — reliability matters most now.','New year, new programs: let’s talk lead times.'],
+  winter:['Cold starts and tight schedules: reliability matters most now.','New year, new programs: let’s talk lead times.'],
 };
 const SEASON_NAME = _m >= 8 && _m <= 10 ? 'autumn' : _m >= 11 || _m <= 1 ? 'winter' : _m <= 4 ? 'spring' : 'summer';
 let topic = 'any';
@@ -1521,7 +1521,7 @@ function analyzeCaption(txt){
     return { template:'event', headline:title, sub: details || 'Details in the caption', quote:'', attr:'' };
   }
   const isQuote = /customer (said|wrote)|testimonial|review|feedback from/i.test(txt) && quoted;
-  if (isQuote) return { template:'review', headline:'', sub:'', quote:'“' + quoted + '”', attr:'— a McMillan customer' };
+  if (isQuote) return { template:'review', headline:'', sub:'', quote:'“' + quoted + '”', attr:'A McMillan customer' };
   if (quoted && quoted.length < 60) { const sgg = tp ? suggestText(tp) : { sub:'' }; return { template:'headline', headline:quoted, sub:sgg.sub || '', quote:'', attr:'' }; }
   if (tp) { const sgg = suggestText(tp); return { template:'headline', headline:sgg.headline, sub:sgg.sub, quote:'', attr:'' }; }
   return { template:'logo', headline:'', sub:'', quote:'', attr:'' };
@@ -1542,7 +1542,7 @@ function parseLines(txt){
   const quoted = /^[“"']/.test(joined) || /[”"']$/.test(joined);
   const eventish = /(\d{1,2}:\d{2}|\b\d{1,2}\s*(am|pm)\b|\b(mon|tues|wednes|thurs|fri|satur|sun)day\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}|\b\d{1,2}(st|nd|rd|th)\b|\brsvp\b|\bbooth\b)/i.test(body.slice(1).join(' '));
   const template = !lines.length ? 'logo' : (quoted || (words > 20 && !eventish)) ? 'review' : eventish ? 'event' : 'headline';
-  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: attr || '— a McMillan customer' };
+  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: (attr || 'A McMillan customer').replace(/^[\u2014\u2013-]\s*/, '') };
 }
 
 // Background choice: generated art (always available) or a photo from the library when there is one.
@@ -1637,14 +1637,14 @@ async function generate(){
       const sgg = suggestText(topic === 'any' ? 'quality' : topic);
       S.template = 'headline'; S.els = [text('headline', sgg.headline)]; if (sgg.sub) S.els.push(text('sub', sgg.sub));
       layout(); await randomBackground('headline', { headline: sgg.headline });
-      toast('Green art always carries a message \u2014 added a headline');
+      toast('Green art always carries a message, so a headline was added');
     }
     randomStyle(measureLum());
     await maybeAddProduct();
     currentDraftId = null;
     $('#gen').hidden = true;
     syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-    toast('Generated — press Generate again for another, or tweak this one');
+    toast('Generated. Press Generate again for another, or adjust this one.');
   } catch (err) {
     console.error(err); $('#genStatus').textContent = 'Couldn’t generate: ' + (err.message || err);
   } finally { btn.disabled = false; genBusy = false; }

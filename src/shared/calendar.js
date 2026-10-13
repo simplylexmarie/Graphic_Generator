@@ -237,7 +237,7 @@ function usePost(iso){
     if (CAL.view && CAL.view.kind === 'week' && curGrid()[CAL.view.row]?.iso.includes(iso)) CAL.view.used = iso;
     else CAL.view = { kind:'day', iso };
     renderCalendar();
-    toast('No headline for this post (x in the sheet)' + (STUDIO.specsFor ? ' \u2014 press Generate from calendar for photo-only options' : ''));
+    toast('No headline for this post (x in the sheet)' + (STUDIO.specsFor ? '. Press Generate from calendar for photo-only options.' : ''));
     return;
   }
   // staying inside the open week just moves the choice along it; anything else is a day view
@@ -290,7 +290,7 @@ function openDefault(){
 // "November 2026 is still a copy of October": said in the panel instead of quietly skipping it.
 function staleNote(){
   return (CAL.stale || []).map(s => ' \u00b7 \u26a0 \u201c' + s.tab + '\u201d still has ' + MONTHS[(s.m + 11) % 12]
-    + '\u2019s dates \u2014 change its first DATE to ' + MONTHS[s.m] + ' and it will appear').join('');
+    + '\u2019s dates. Change its first DATE to ' + MONTHS[s.m] + ' and it will appear').join('');
 }
 function renderCalendar(){
   updateCalGen();
@@ -301,7 +301,7 @@ function renderCalendar(){
   const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
   if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
   if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
-  if (!CAL.months.length) { status.textContent = (STORE.ready && STORE.ai ? 'No calendar for this month yet \u2014 draft one with AI, or ' : 'No month tabs found in the sheet. ') + 'type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (!CAL.months.length) { status.textContent = (STORE.ready && STORE.ai ? 'No calendar for this month yet. Draft one with AI, or ' : 'No month tabs found in the sheet. ') + 'type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
 
   sel.innerHTML = '';
   for (const m of CAL.months) sel.append(h('option',{value:m.key}, m.label));
@@ -338,7 +338,7 @@ function renderCalendar(){
       const on = CAL.view && ((CAL.view.kind === 'day' && CAL.view.iso === iso) ||
                               (CAL.view.kind === 'week' && CAL.view.row === r && p));
       const cell = h('button',{class:cls.join(' '),'aria-pressed':String(!!on),disabled:!p,
-        title:p ? (p.bucket || 'Post') + ' — ' + (p.noHead ? 'photo only, no headline' : p.hook || 'no hook text yet') : '',
+        title:p ? (p.bucket || 'Post') + ': ' + (p.noHead ? 'photo only, no headline' : p.hook || 'no hook text yet') : '',
         onclick:()=>{ if (p) usePost(iso); }},
         h('span',{class:'cg-num'}, String(d.getDate())));
       if (p) cell.append(isDone(p)
@@ -367,19 +367,19 @@ function renderCalendar(){
       h('span',{class:'cd-head'},
         h('b',{}, DAY_ABBR[p.date.getDay()] + ' ' + (p.date.getMonth()+1) + '/' + p.date.getDate()),
         h('span',{class:'cd-bucket',style:b ? 'color:'+b[2] : ''}, p.bucket || '')),
-      h('span',{class:'cd-hook'}, p.noHead ? 'Photo only \u2014 no headline' : p.hook || '\u2014 no hook text yet \u2014'),
+      h('span',{class:'cd-hook'}, p.noHead ? 'Photo only, no headline' : p.hook || 'No hook text yet'),
       h('span',{class:'cd-use'}, p.noHead ? 'Photo only' : loaded ? '\u2713 headline loaded' : 'Use this post')));
   }
   detail.append(wrap);
   if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
-    title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
+    title:'Three graphics matched to this post\u2019s caption and bucket'}, 'Generate options for this post'));
   // a month kept in the generator is edited right here; a sheet month is read-only
   if (month.source === 'app') { if (shown) calEditor(detail, shown, month); monthTools(detail, month); return; }
   if (shown && shown.post) {
     detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
       h('button',{class:'btn link',onclick:async()=>{
         try { await navigator.clipboard.writeText(shown.post); toast('Post text copied'); }
-        catch { toast('Couldn\u2019t copy \u2014 select the text and copy it by hand'); }
+        catch { toast('Couldn\u2019t copy. Select the text and copy it by hand.'); }
       }}, 'Copy')));
     detail.append(h('p',{class:'cal-post'}, shown.post));
   }

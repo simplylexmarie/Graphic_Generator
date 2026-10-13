@@ -238,7 +238,7 @@ rep("""        <button data-v="auto" aria-pressed="true">Auto</button>
         <button data-v="collage" aria-pressed="false">Collage</button>
         <button data-v="list" aria-pressed="false">List</button>
         <button data-v="quote" aria-pressed="false">Quote</button>""")
-rep("<p>Type what it should say — first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client's quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>",
+rep("<p>Type what it should say. The first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client's quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>",
     "<p>Type the headline (first line) and an optional second line. A short phrase like <b>Ownership</b> becomes a sticky-note card. Paste a parent’s quote and it becomes a cork-board note. Leave it blank for a photo. Keep pressing Generate until you like one, then tweak.</p>")
 rep('placeholder="Pre-Planning&#10;a simple process&#10;&#10;…or paste the whole caption here"',
     'placeholder="Ownership&#10;&#10;…or paste the whole caption here"')
@@ -286,7 +286,7 @@ rep("function setTemplate(t){\n  pushUndo(); S.template = t; templateDefaults();
   templateDefaults(); layout();
   // House rule from the master: a headline never sits on bare paper. It arrives with a photo,
   // and if the library is empty it becomes a sticky-note card instead of a hollow page.
-  if (t === 'headline') { if (await maybeAddPhoto()) layout(); else { S.template = 'note'; templateDefaults(); layout(); toast('Add photos to the library \u2014 showing a note card instead'); } }
+  if (t === 'headline') { if (await maybeAddPhoto()) layout(); else { S.template = 'note'; templateDefaults(); layout(); toast('Add photos to the library. Showing a note card for now.'); } }
   if (IMG.bg && S.bg.kind === 'photo') autoContrast(false);
   syncControls(); renderInspector(); renderResults(); render();
 }""")

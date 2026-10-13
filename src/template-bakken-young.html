@@ -235,7 +235,7 @@ canvas#c.dragging{cursor:grabbing}
       <h2>Background photo <button class="btn link" id="keyToggle">Change key</button></h2>
       <div id="keyBox" hidden>
         <div class="note" style="margin:0 0 8px">
-          <b>Photo key</b> — photos come from Pexels (free for commercial use). A team key is built in; paste a different one here only if you need to.
+          <b>Photo key</b>: photos come from Pexels (free for commercial use). A team key is built in; paste a different one here only if you need to.
         </div>
         <div class="search"><input type="password" id="apiKey" placeholder="Paste Pexels API key" autocomplete="off"><button class="btn sm" id="saveKey">Save</button></div>
       </div>
@@ -278,7 +278,7 @@ canvas#c.dragging{cursor:grabbing}
       <div class="row"><label for="fade">Strength</label><input type="range" id="fade" min="0" max="90" value="45"></div>
       <div class="row"><label for="fadeSize">Height</label><input type="range" id="fadeSize" min="15" max="90" value="55"></div>
       <div class="row"><label>Color</label><div class="swatches" id="fadeColor"></div></div>
-      <p class="hint">Shading directly behind the logo or a text block is separate — click the logo or text to set it.</p>
+      <p class="hint">Shading directly behind the logo or a text block is separate. Click the logo or text to set it.</p>
     </div>
   </aside>
 
@@ -286,7 +286,7 @@ canvas#c.dragging{cursor:grabbing}
     <div class="toolbar">
       <span class="hint">Click anything on the graphic to select it. Drag to move · corners to resize · <span class="kbd">←↑↓→</span> nudge · <span class="kbd">⌫</span> remove</span>
       <span class="spacer"></span>
-      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">✨ Generate</button>
+      <button class="btn sm gen" id="genBtn" title="Build a complete graphic from your text with a random photo, look and layout">Generate</button>
       <button class="btn sm" id="shufPhoto" title="Keep the layout, try a different photo">Shuffle photo</button>
       <button class="btn sm" id="shufLook" title="Keep the photo, try a different look and layout">Shuffle look</button>
       <button class="btn sm" id="addText">+ Add text</button>
@@ -299,8 +299,8 @@ canvas#c.dragging{cursor:grabbing}
         <div class="welcome-card">
           <div class="kicker">Bakken-Young studio</div>
           <h2>Welcome!</h2>
-          <p>Press Generate and get a finished graphic in one click — then change anything you like. Or pick a template on the left to build one yourself.</p>
-          <button class="btn gen big ping" id="welcomeGen">✨ Generate</button>
+          <p>Press Generate and get a finished graphic in one click, then change anything you like. Or pick a template on the left to build one yourself.</p>
+          <button class="btn gen big ping" id="welcomeGen">Generate</button>
           <button class="btn link alt" id="welcomeSkip">Start from a template instead</button>
         </div>
       </div>
@@ -326,9 +326,9 @@ canvas#c.dragging{cursor:grabbing}
 <div class="setup" id="gen" hidden>
   <div>
     <h2>Generate a graphic</h2>
-    <p>Type what it should say — first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client's quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>
+    <p>Type what it should say. The first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client's quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>
     <div class="chips" id="topicChips" style="margin-bottom:6px"></div>
-    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">✎ Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
+    <div class="row" style="margin-bottom:8px"><button class="btn sm" id="suggestBtn" title="Write a headline and subline in the house voice">Suggest text</button><span class="hint">or paste the post's caption and it will pull the headline, topic and any date out of it</span></div>
     <div class="field"><textarea id="genText" placeholder="Pre-Planning&#10;a simple process&#10;&#10;…or paste the whole caption here"></textarea></div>
     <div class="row" style="margin-bottom:0"><label>Template</label>
       <div class="seg" id="genTpl">
@@ -419,7 +419,7 @@ function layout(){
   }
   else if (S.template === 'review') {
     const q = byId('quote')?.text ?? '\u201CBoth times we were treated like we were family to them. Kind and respectful always, giving us what we needed sometimes before we knew we needed it. We would highly recommend Bakken-Young Funeral and Cremation Services.\u201D';
-    const a = byId('attr')?.text ?? '\u2014 from a client';
+    const a = byId('attr')?.text ?? 'From a client';
     const bx = 0.08*w, bw = 0.84*w, by = wide ? 0.10*h : 0.08*h, bh = wide ? 0.68*h : 0.60*h;
     els.push({ id:'box', type:'box', x:bx, y:by, w:bw, h:bh, fill:'#1f3a26', alpha:0.78, label:'FEATURED REVIEW', labelFill:'#719587', labelColor:'#ffffff', kids:['quote','attr'] });
     const pad = 0.05*w;
@@ -672,7 +672,7 @@ function autoContrast(announce){
   const L = LOOKS[S.look];
   const lum = measureLum();
   if (L.dark) {
-    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark — green text may be hard to read. Try “White on photo”.');
+    S.bg.dim = 0; if (lum < 0.4 && announce) toast('This photo is fairly dark, so green text may be hard to read. Try “White on photo”.');
   } else {
     // bright photo → more darkening & fade; dark photo → almost none
     // house style: a uniform tint of roughly 25-50% depending on how bright the photo is
@@ -992,7 +992,7 @@ function screen(list, term){
   return term ? ok.filter(p => !p.alt || relevant(p.alt, term)).concat(ok.filter(p => p.alt && !relevant(p.alt, term))) : ok;
 }
 $('#rulesToggle').addEventListener('click', () => { $('#rulesBox').hidden = !$('#rulesBox').hidden; $('#avoidWords').value = learn.avoid || ''; });
-$('#avoidWords').addEventListener('change', e => { learn.avoid = e.target.value; try { localStorage.setItem(LEARN_KEY, JSON.stringify(learn)); } catch {} toast('Saved — applies to the next search'); });
+$('#avoidWords').addEventListener('change', e => { learn.avoid = e.target.value; try { localStorage.setItem(LEARN_KEY, JSON.stringify(learn)); } catch {} toast('Saved. Applies to the next search'); });
 
 // ---------- photo search (Pexels) ----------
 function orientation(){ const [w,h] = SIZES[S.size]; return w > h ? 'landscape' : w < h ? 'portrait' : 'square'; }
@@ -1018,15 +1018,15 @@ async function search(fresh){
     results.more = raw.length === 18;
     $('#skippedNote').textContent = lastSkipped ? `${lastSkipped} photo${lastSkipped===1?'':'s'} hidden by the photo rules on this page.` : '';
     renderResults();
-    $('#rstatus').textContent = results.length ? `${results.length} photos for “${base}”` : 'No photos found — try different words.';
+    $('#rstatus').textContent = results.length ? `${results.length} photos for “${base}”` : 'No photos found. Try different words.';
   } catch (err) {
     console.error('Photo search failed', err);
     const isFile = location.protocol === 'file:';
     const isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|android/i.test(navigator.userAgent);
     let why = 'Photo search couldn’t connect';
-    if (isFile && isSafari) why += ' — Safari blocks this when the file is opened directly. Open this file in Chrome instead.';
-    else if (isFile) why += ' — try opening the file in Chrome.';
-    else why += ' — check the internet connection and try again.';
+    if (isFile && isSafari) why += '. Safari blocks this when the file is opened directly. Open this file in Chrome instead.';
+    else if (isFile) why += '. Try opening the file in Chrome.';
+    else why += '. Check the internet connection and try again.';
     $('#rstatus').textContent = why + ' (' + (err && err.message ? err.message : err) + ')';
   }
 }
@@ -1035,11 +1035,11 @@ $('#tabs').addEventListener('click', e => { const b = e.target.closest('button')
 function renderResults(){
   const box = $('#results'); box.innerHTML = '';
   let list, more = false;
-  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet — hover a photo and click ☆ to save it here.'; }
-  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Photos you’ve downloaded graphics with, newest first' : 'Nothing yet — photos show up here after you download a graphic using them.'; }
+  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet. Hover a photo and click ☆ to save it here.'; }
+  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Photos you’ve downloaded graphics with, newest first' : 'Nothing yet. Photos show up here after you download a graphic using them.'; }
   else { list = results; more = !!results.more; }
   for (const p of list) {
-    const d = h('div',{class:'res',title:(p.alt||'')+' — '+p.photographer,'aria-pressed':String(IMG.src?.id===p.id),role:'button',tabindex:'0',onclick:()=>usePhoto(p),onkeydown:e=>{ if (e.key==='Enter') usePhoto(p); }},
+    const d = h('div',{class:'res',title:(p.alt||'')+', '+p.photographer,'aria-pressed':String(IMG.src?.id===p.id),role:'button',tabindex:'0',onclick:()=>usePhoto(p),onkeydown:e=>{ if (e.key==='Enter') usePhoto(p); }},
       h('img',{src:p.tiny,alt:p.alt||'',loading:'lazy'}),
       h('button',{class:'star',title:photoMem.favs[p.id]?'Remove from favorites':'Add to favorites','aria-pressed':String(!!photoMem.favs[p.id]),onclick:e=>{ e.stopPropagation(); toggleFav(p); }}, photoMem.favs[p.id] ? '★' : '☆'));
     const u = usedLabel(p.id); if (u) d.append(h('span',{class:'used'}, u));
@@ -1057,7 +1057,7 @@ async function usePhoto(p){
     S.bg.ox = S.bg.oy = 0; S.bg.zoom = 1; $('#zoom').value = 100;
     autoContrast(false);
     renderResults(); fitCanvas();
-  } catch { toast('Couldn’t load that photo — try another'); }
+  } catch { toast('Couldn’t load that photo. Try another.'); }
   finally { $('#loading').classList.remove('show'); }
 }
 $('#searchBtn').addEventListener('click', () => search(true));
@@ -1108,7 +1108,7 @@ document.addEventListener('paste', e => {
 function loadDrafts(){ try { return JSON.parse(localStorage.getItem(LS.drafts)||'[]'); } catch { return []; } }
 function storeDrafts(list){
   try { localStorage.setItem(LS.drafts, JSON.stringify(list)); return true; }
-  catch { toast('Browser storage is full — delete an old draft (ones with uploaded photos take the most room).'); return false; }
+  catch { toast('Browser storage is full. Delete an old draft (ones with uploaded photos take the most room).'); return false; }
 }
 function draftName(){
   if (S.template === 'headline' || S.template === 'event') return byId('headline')?.text || 'Headline';
@@ -1148,7 +1148,7 @@ async function openDraft(d, asCopy){
     finally { $('#loading').classList.remove('show'); }
   }
   syncControls(); renderInspector(); renderResults(); fitCanvas(); renderDrafts();
-  toast(asCopy ? 'Opened a copy — save it to keep it as its own draft' : `Opened “${d.name}”`);
+  toast(asCopy ? 'Opened a copy. Save it to keep it as its own draft.' : `Opened “${d.name}”`);
 }
 function deleteDraft(id){
   const list = loadDrafts(); const d = list.find(x => x.id === id);
@@ -1229,7 +1229,7 @@ $('#dlBtn').addEventListener('click', async () => {
   try {
     await fontsReady();
     let blob;
-    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here — try picking it again or uploading it.'); return; }
+    try { blob = await renderBlob(); } catch { toast('This photo can’t be exported from here. Try picking it again or uploading it.'); return; }
     saveBlob(blob, filename()); markUsed(); if (tab !== 'search') renderResults();
   } finally { btn.disabled = false; btn.textContent = 'Download PNG'; }
 });
@@ -1245,7 +1245,7 @@ function carryStyle(from, to){
   return to;
 }
 $('#dlAllBtn').addEventListener('click', async () => {
-  if (!window.JSZip) { toast('The zip helper didn’t load — check the connection and reload.'); return; }
+  if (!window.JSZip) { toast('The zip helper didn’t load. Check the connection and reload.'); return; }
   const btn = $('#dlAllBtn'); btn.disabled = true; btn.textContent = 'Preparing…';
   const saved = snapshot(); const savedSel = S.sel; const w0 = W(), h0 = H();
   try {
@@ -1326,7 +1326,7 @@ const BANK = {
   cremation:{ label:'Cremation',        heads:['Cremation','Cremation Planning'],
               subs:['memorable & simple','honoring your loved one','is thoughtful','is planning with mindfulness','we keep anxiety-free','simple, dignified, personal','with the same care','options explained gently','meaningful in every form'] },
   grief:    { label:'Grief Support',    heads:['Grief Support','Self-Care for Grief','Grieving Together'],
-              subs:['you don’t have to carry it alone','gentle support, every week','a place to be heard','support for the days after','healing takes its own time','walking with you through loss','join us — in person or online','room for every feeling'] },
+              subs:['you don’t have to carry it alone','gentle support, every week','a place to be heard','support for the days after','healing takes its own time','walking with you through loss','join us in person or online','room for every feeling'] },
   thanks:   { label:'Thank you',        heads:['Thank You','With Gratitude'],
               subs:['for trusting us with your family','from our family to yours','your kind words mean so much','it is our honor to serve','grateful for the families we walk with'] },
 };
@@ -1404,7 +1404,7 @@ function parseLines(txt){
   const quoted = /^[\u201C"']/.test(joined) || /[\u201D"']$/.test(joined);
   const eventish = /(\d{1,2}:\d{2}|\b\d{1,2}\s*(am|pm)\b|\b(mon|tues|wednes|thurs|fri|satur|sun)day\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}|\b\d{1,2}(st|nd|rd|th)\b|\brsvp\b|\bzoom\b|\bjoin us\b)/i.test(body.slice(1).join(' '));
   let template = !lines.length ? 'logo' : (quoted || (words > 16 && !eventish)) ? 'review' : eventish ? 'event' : 'headline';
-  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: attr || '\u2014 from a client' };
+  return { template, headline: body[0] || '', sub: template === 'event' ? body.slice(1).join('\n') : body.slice(1).join(' '), quote: joined, attr: (attr || 'From a client').replace(/^[\u2014\u2013-]\s*/, '') };
 }
 async function randomPhoto(template){
   const opts = POOLS[template];
@@ -1429,7 +1429,7 @@ async function randomPhoto(template){
     $('#rstatus').textContent = `${photos.length} photos for “${term}”`;
     return Object.assign({ term }, p);
   }
-  throw new Error('Couldn\u2019t find a photo that passes the rules \u2014 try Generate again');
+  throw new Error('Couldn\u2019t find a photo that passes the rules. Try Generate again.');
 }
 function randomStyle(lum){
   const bright = lum > 0.6;
@@ -1483,7 +1483,7 @@ async function generate(){
     currentDraftId = null;
     $('#gen').hidden = true;
     syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-    toast('Generated — press Generate again for another, or tweak this one');
+    toast('Generated. Press Generate again for another, or adjust this one.');
   } catch (err) {
     console.error(err); $('#genStatus').textContent = 'Couldn’t generate: ' + (err.message || err);
   } finally { btn.disabled = false; genBusy = false; }

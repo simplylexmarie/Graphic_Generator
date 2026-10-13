@@ -77,7 +77,7 @@ function analyzeCaption(txt){
   const quoted = ((txt.match(/[“"]([^”"]{12,240})[”"]/) || [])[1] || '').trim();
   const tp = detectTopic(txt);
   const parentQuote = quoted && /parent|mom|dad|family|we see|our kids|my child|tell us/i.test(txt);
-  if (parentQuote) return { template:'quote', headline:'', sub:'', quote:'“' + quoted + '”', attr:'— a Spring Forth parent' };
+  if (parentQuote) return { template:'quote', headline:'', sub:'', quote:'“' + quoted + '”', attr:'A Spring Forth parent' };
   if (LIST_RE.test(txt)) { const q = (txt.match(/[^.!?\n]*(?:instead of|three questions|questions we)[^.!?\n]*/i)||[])[0];
     return { template:'list', headline:((q||'A few things to try').trim().replace(/[.:]?$/, ':')), items:[], sub:'', quote:'', attr:'' }; }
   if (quoted && quoted.length < 70) { const sgg = tp ? suggestText(tp) : { sub:'' }; return { template:'headline', headline:quoted, sub:sgg.sub || '', quote:'', attr:'' }; }
@@ -99,7 +99,7 @@ function parseLines(txt){
   const words = joined.split(/\s+/).filter(Boolean).length;
   const quoted = /^[“"']/.test(joined) || /[”"']$/.test(joined);
   if (!lines.length) return { template:'logo', headline:'', sub:'', quote:'', attr:'' };
-  if (quoted || words > 18) return { template:'quote', headline:'', sub:'', quote:joined, attr: attr || '— a Spring Forth parent' };
+  if (quoted || words > 18) return { template:'quote', headline:'', sub:'', quote:joined, attr: (attr || 'A Spring Forth parent').replace(/^[\u2014\u2013-]\s*/, '') };
   // a short phrase — on one line or broken over two or three — is a sticky-note card,
   // and the line breaks she typed are kept as written
   // an intro ending in a colon is a three-note list; lines after it become the notes
@@ -190,19 +190,19 @@ async function generate(){
       S.template = S.template === 'collage' ? 'headline' : 'note';
       if (!byId('headline')) { const sgg = suggestText(topic === 'any' ? 'values' : topic); S.els = [text('headline', sgg.headline)]; }
       await randomBackground(S.template);
-      toast('No photos in the library yet — made a paper card instead');
+      toast('No photos in the library yet, so this is a paper card');
     }
     randomStyle();
     if (!(await maybeAddPhoto())) {
       const hl = byId('headline')?.text || 'Learning By Doing';
       S.template = 'note'; S.els = [text('headline', hl)];
       templateDefaults(); layout();
-      toast('No photo to pair with that headline \u2014 made a note card instead');
+      toast('No photo to pair with that headline, so this is a note card');
     }
     currentDraftId = null;
     $('#gen').hidden = true;
     syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-    toast('Generated — press Generate again for another, or tweak this one');
+    toast('Generated. Press Generate again for another, or adjust this one.');
   } catch (err) {
     console.error(err); $('#genStatus').textContent = 'Couldn’t generate: ' + (err.message || err);
   } finally { btn.disabled = false; genBusy = false; }

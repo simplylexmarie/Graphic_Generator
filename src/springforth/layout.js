@@ -62,7 +62,7 @@ function layout(){
     const gap = w*0.032, nw = (w - m*2 - gap*2)/3;
     const nh = Math.max(h*0.19, Math.min(h*0.33, floor - top - h*0.02));
     const y0 = top + (floor - top - nh)*0.52;
-    const defaults = ['“You worked hard on that.”','“You stuck with it, even when it was hard.”','“You tried a new strategy — that took courage.”'];
+    const defaults = ['“You worked hard on that.”','“You stuck with it, even when it was hard.”','“You tried a new strategy. That took courage.”'];
     for (let i=0;i<3;i++){
       const id = 'item-'+(i+1), nx = m + i*(nw+gap);
       const ny = y0 + (i===1 ? -h*0.020 : h*0.012);          // the middle card sits slightly proud
@@ -76,7 +76,7 @@ function layout(){
   }
   else if (S.template === 'quote') {
     const q = byId('quote')?.text ?? '“It’s very hands on, student driven… I love that we allow them to fail early and cheaply.”';
-    const a = byId('attr')?.text ?? '— a Spring Forth parent';
+    const a = byId('attr')?.text ?? 'A Spring Forth parent';
     // the card is cut to the length of the quote, with a couple of spare rules under it —
     // the master never pins up a notepad that trails off empty
     const floor = (waveFloor(0.06, 0.94) - 0.030)*h;

@@ -178,7 +178,7 @@ rep("""        <button class="tile" data-t="review" aria-pressed="false">""",
 rep(".tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}", ".tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}")
 rep(".tile svg{width:38px;height:38px;display:block}", ".tile svg{width:34px;height:34px;display:block}")
 rep(".tile{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel-2);padding:8px 6px;", ".tile{border:1px solid var(--line-strong);border-radius:8px;background:var(--panel-2);padding:7px 3px;")
-rep('<p>Type what it should say — first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client\'s quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>',
+rep('<p>Type what it should say. The first line is the headline, the next line the subline. Add a date or time and it becomes an event. Paste a client\'s quote for a review. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>',
     '<p>Type the headline (first line) and an optional subline. A value like <b>INTEGRITY:</b> plus its explanation becomes a statement card. Add a date or time for an event. Leave it blank for logo only. Keep pressing Generate until you like one, then tweak.</p>')
 rep('placeholder="Pre-Planning&#10;a simple process&#10;&#10;…or paste the whole caption here"', 'placeholder="QUALITY:&#10;Investing in people, systems, and testing so motors do their job quietly for years.&#10;&#10;…or paste the whole caption here"')
 
@@ -200,7 +200,7 @@ rep("function setTemplate(t){\n  pushUndo(); S.template = t; templateDefaults();
   else if (S.bg.kind === 'collage') { S.bg.kind = 'art'; S.bg.cells = null; }
   if (t === 'logo' && S.bg.kind === 'art') {
     const r = await randomBackground('logo', {});
-    if (r === 'none') toast('Logo-only graphics use a photo \\u2014 the library is empty, so upload one below');
+    if (r === 'none') toast('Logo-only graphics use a photo. The library is empty, so upload one below.');
   }
   templateDefaults(); layout(); if (IMG.bg && S.bg.kind === 'photo') autoContrast(false);
   syncControls(); renderInspector(); renderResults(); render();

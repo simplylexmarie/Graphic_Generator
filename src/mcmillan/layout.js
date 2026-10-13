@@ -75,8 +75,8 @@ function layout(){
     }
   }
   else if (S.template === 'review') {
-    const q = byId('quote')?.text ?? '“McMillan has been a dependable partner for our motor programs — realistic lead times, consistent quality, and people who pick up the phone.”';
-    const a = byId('attr')?.text ?? '— OEM engineering manager';
+    const q = byId('quote')?.text ?? '“McMillan has been a dependable partner for our motor programs: realistic lead times, consistent quality, and people who pick up the phone.”';
+    const a = byId('attr')?.text ?? 'OEM engineering manager';
     const bx = 0.07*w, bw = 0.86*w, by = wide ? 0.10*h : 0.09*h, bh = wide ? 0.66*h : 0.58*h;
     els.push({ id:'box', type:'box', x:bx, y:by, w:bw, h:bh, fill:'#034226', alpha:0.9, label:'CUSTOMER FEEDBACK', labelFill:'#00d66b', labelColor:'#034226', kids:['quote','attr'] });
     const pad = 0.05*w;

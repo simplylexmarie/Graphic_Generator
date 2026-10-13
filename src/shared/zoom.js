@@ -33,7 +33,7 @@ cv.addEventListener('dblclick', e => {
   if (!el || el.type !== 'image' || typeof cropRoom !== 'function') return;
   cropMode = cropMode === el.id ? null : el.id;
   S.sel = el.id; renderInspector(); render();
-  toast(cropMode ? 'Drag to move the photo inside its frame — double-click again when done' : 'Dragging moves the whole photo again');
+  toast(cropMode ? 'Drag to move the photo inside its frame. Double-click again when you\u2019re done.' : 'Dragging moves the whole photo again');
 });
 
 // Two-finger pinch on a phone or tablet: zooms the photo the pinch started on (inside its

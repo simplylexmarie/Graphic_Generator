@@ -53,12 +53,12 @@ function renderKindChips(){
 function renderResults(){
   const box = $('#results'); box.innerHTML = '';
   let list;
-  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet — hover an image and click ☆.'; }
-  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet — images show up here after you download a graphic using them.'; }
+  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet. Hover an image and click ☆.'; }
+  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet. Images show up here after you download a graphic using them.'; }
   else {
     renderKindChips();
     list = LIB.filter(p => libKind === 'all' || p.kind === libKind);
-    $('#rstatus').textContent = LIB.length ? `${list.length} photo${list.length===1?'':'s'} in the Spring Forth library` : 'The photo library is empty — add Spring Forth’s photos to get started. You can still upload one below.';
+    $('#rstatus').textContent = LIB.length ? `${list.length} photo${list.length===1?'':'s'} in the Spring Forth library` : 'The photo library is empty. Add Spring Forth’s photos to get started. You can still upload one below.';
   }
   $('#kindChips').hidden = tab !== 'lib';
   const usedNow = new Set((S.bg.cells||[]).map(c => c.id).concat([IMG.src?.id, byId('photo')?.libId].filter(Boolean)));
@@ -196,5 +196,5 @@ $('#collageQuick').addEventListener('click', async () => {
   if (!(await makeCollage('all'))) return;
   S.template = 'collage'; currentDraftId = null;
   templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-  toast('Collage — press again for another mix');
+  toast('Collage. Press again for another mix.');
 });

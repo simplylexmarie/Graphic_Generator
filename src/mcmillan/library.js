@@ -49,12 +49,12 @@ function renderKindChips(){
 function renderResults(){
   const box = $('#results'); box.innerHTML = '';
   let list;
-  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet — hover an image and click ☆.'; }
-  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet — images show up here after you download a graphic using them.'; }
+  if (tab === 'favs') { list = Object.values(photoMem.favs).sort((a,b) => b.addedAt - a.addedAt); $('#rstatus').textContent = list.length ? `${list.length} favorite${list.length===1?'':'s'}` : 'No favorites yet. Hover an image and click ☆.'; }
+  else if (tab === 'recent') { list = Object.values(photoMem.used).sort((a,b) => b.lastUsed - a.lastUsed); $('#rstatus').textContent = list.length ? 'Images you’ve downloaded graphics with, newest first' : 'Nothing yet. Images show up here after you download a graphic using them.'; }
   else {
     renderKindChips();
     list = LIB.filter(p => libKind === 'all' || p.kind === libKind);
-    $('#rstatus').textContent = LIB.length ? `${list.length} image${list.length===1?'':'s'} in the McMillan library` : 'The image library is empty — ask Alexia to add McMillan’s photos. You can still upload one below.';
+    $('#rstatus').textContent = LIB.length ? `${list.length} image${list.length===1?'':'s'} in the McMillan library` : 'The image library is empty. Ask Alexia to add McMillan’s photos. You can still upload one below.';
   }
   $('#kindChips').hidden = tab !== 'lib';
   for (const p of list) {
@@ -103,7 +103,7 @@ function setArt(style, newSeed){
   if (S.template === 'logo' || S.template === 'collage') {
     const sgg = suggestText('quality');
     S.template = 'headline'; S.els = [text('headline', sgg.headline)]; if (sgg.sub) S.els.push(text('sub', sgg.sub));
-    toast('Green art always carries a message \u2014 added a headline you can edit');
+    toast('Green art always carries a message, so a headline was added for you to edit');
   }
   if (newSeed || !S.bg.seed) S.bg.seed = Math.floor(Math.random()*100000) + 1;
   IMG.src = { kind:'art', art:S.bg.art, seed:S.bg.seed };
@@ -146,5 +146,5 @@ $('#collageQuick').addEventListener('click', async () => {
   if (r === 'none') { toast('A collage needs at least 3 library photos'); return; }
   S.template = 'collage'; S.frame = 'none'; currentDraftId = null;
   templateDefaults(); layout(); syncControls(); renderInspector(); renderResults(); fitCanvas(); persist();
-  toast('Collage \u2014 press again for another mix');
+  toast('Collage. Press again for another mix.');
 });
