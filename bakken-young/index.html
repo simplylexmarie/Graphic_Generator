@@ -1659,7 +1659,7 @@ function parseDate(s){
   const d = new Date(y, +m[1]-1, +m[2]);
   return isNaN(d) ? null : d;
 }
-function readTab(text, cfg, y, m){
+function readTab(text, cfg, y, m, info){
   const rows = parseCsv(text);
   const hdr = rows.findIndex(r => r.some(c => /HOOK\s*TEXT/i.test(c)) && r.some(c => /^\s*POST\s*$/i.test(c)));
   if (hdr < 0) return null;
@@ -1683,6 +1683,7 @@ function readTab(text, cfg, y, m){
   // gviz answers a missing tab with the first sheet, so the dates decide whether this really
   // is the month that was asked for
   const mine = posts.filter(p => p.date.getFullYear() === y && p.date.getMonth() === m);
+  if (info) info.posts = posts;
   return mine.length >= posts.length/2 ? mine : null;
 }
 
@@ -1695,12 +1696,18 @@ async function tryMonth(cfg, y, m){
     try {
       const r = await fetch(tabUrl(cfg.sheetId, tab), { cache:'no-store' });
       if (!r.ok) return null;
-      const posts = readTab(await r.text(), cfg, y, m);
-      return posts ? { tab, posts } : null;
+      const info = {};
+      const posts = readTab(await r.text(), cfg, y, m, info);
+      if (posts) return { tab, posts };
+      // A tab duplicated from last month and not yet re-dated: its dates are all the month
+      // before. (A missing tab comes back as the sheet's first tab, which isn't that.)
+      const prev = new Date(y, m-1, 1), all = info.posts || [];
+      const stale = all.length && all.filter(p => p.date.getFullYear() === prev.getFullYear() && p.date.getMonth() === prev.getMonth()).length >= all.length/2;
+      return stale ? { tab, stale:true } : null;
     } catch { return null; }
   }));
-  const hit = got.find(Boolean);
-  if (!hit) return null;
+  const hit = got.find(g => g && !g.stale);
+  if (!hit) { const st = got.find(g => g && g.stale); return st ? { y, m, label:MONTHS[m] + ' ' + y, tab:st.tab, stale:true } : null; }
   hit.posts.sort((a,b) => a.date - b.date);
   return { y, m, key:monthKey(y,m), label:MONTHS[m] + ' ' + y, tab:hit.tab, posts:hit.posts };
 }
@@ -1711,7 +1718,8 @@ async function discoverMonths(){
   const want = [];
   for (let i = 0; i <= 5; i++) { const d = new Date(now.getFullYear(), now.getMonth()+i, 1); want.push([d.getFullYear(), d.getMonth()]); }
   const found = await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m)));
-  return found.filter(Boolean);
+  CAL.stale = found.filter(f => f && f.stale);
+  return found.filter(f => f && !f.stale);
 }
 
 // ---------- the month grid ----------
@@ -1866,6 +1874,11 @@ function openDefault(){
 }
 
 // ---------- panel ----------
+// "November 2026 is still a copy of October": said in the panel instead of quietly skipping it.
+function staleNote(){
+  return (CAL.stale || []).map(s => ' \u00b7 \u26a0 \u201c' + s.tab + '\u201d still has ' + MONTHS[(s.m + 11) % 12]
+    + '\u2019s dates \u2014 change its first DATE to ' + MONTHS[s.m] + ' and it will appear').join('');
+}
 function renderCalendar(){
   updateCalGen();
   const sec = $('#calSec'); if (!sec) return;
@@ -1874,7 +1887,7 @@ function renderCalendar(){
   const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
   if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
   if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
-  if (!CAL.months.length) { status.textContent = 'No month tabs found in the sheet. Type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (!CAL.months.length) { status.textContent = 'No month tabs found in the sheet. Type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
 
   sel.innerHTML = '';
   for (const m of CAL.months) sel.append(h('option',{value:m.key}, m.label));
@@ -1888,7 +1901,7 @@ function renderCalendar(){
   const blank = month.posts.filter(p => !p.hook && !p.noHead).length;
   status.textContent = month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
     + (photoOnly ? ' · ' + photoOnly + ' photo only (x)' : '')
-    + (blank ? ' · ' + blank + ' with no hook text yet' : '');
+    + (blank ? ' · ' + blank + ' with no hook text yet' : '') + staleNote();
 
   grid.innerHTML = '';
   grid.append(h('div',{class:'cg-corner'}, ''));
@@ -2426,7 +2439,7 @@ async function fontsReady(){
 })();
 })();
 </script>
-<script src="../clients.js?v=202610121648"></script>
+<script src="../clients.js?v=202610131413"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {
