@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+AUTH_MODE=off
+ANTHROPIC_API_KEY=
+# AI_FAKE=1 returns sample posts instead of calling Claude (local testing without a key)
+AI_FAKE=

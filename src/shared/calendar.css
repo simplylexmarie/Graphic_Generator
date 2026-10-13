@@ -50,3 +50,7 @@
 .ce-graphic{display:flex;gap:8px;align-items:flex-start}
 .ce-graphic img{width:96px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.25);display:block}
 .ce-gbtns{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.ce-client{padding:6px 8px;border-radius:6px;font-size:12px}
+.ce-client.approved{background:rgba(31,157,85,.15);color:#3fbf78}
+.ce-client.changes{background:rgba(199,119,0,.15);color:#e0a040}
+.ce-note{margin-top:3px;font-style:italic}

@@ -1,0 +1,20 @@
+# Graphic Generator — Cloudflare Pages project.
+# Static site in public/ (built by scripts/build.mjs from the studios), API in functions/.
+name = "graphic-generator"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Every request except the client review pages must come through Cloudflare Access (the team
+# login). Local development turns this off in .dev.vars (AUTH_MODE=off) — never in production.
+AUTH_MODE = "access"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "graphic-generator"
+database_id = "local-dev"            # replaced with the real ID when the database is created
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "graphic-generator-files"

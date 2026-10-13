@@ -112,6 +112,8 @@ async function downloadMonth(){
 const DRIVE_PASS_KEY = STUDIO.slug + '-drive-pass';
 function driveCfg(){ const c = calCfg(); return c && c.driveEndpoint ? c : null; }
 function drivePass(ask){
+  // the app's own server (/api) sits behind the team login, so there's no passcode to ask for
+  const cfg = calCfg(); if (cfg && /^\//.test(cfg.driveEndpoint || '')) return 'team';
   let v = ''; try { v = localStorage.getItem(DRIVE_PASS_KEY) || ''; } catch {}
   if (!v && ask) { v = (prompt('Team passcode for Save to Drive:') || '').trim(); if (v) try { localStorage.setItem(DRIVE_PASS_KEY, v); } catch {} }
   return v;

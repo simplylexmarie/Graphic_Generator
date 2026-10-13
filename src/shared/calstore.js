@@ -13,7 +13,7 @@ async function storeInit(){
   if (!driveCfg() || !drivePass(false)) return false;
   try {
     const j = await drivePost({ action:'ping', client:STUDIO.name }, false);
-    STORE.ready = true; STORE.ai = !!j.ai; STORE.guide = !!j.guide;
+    STORE.ready = true; STORE.ai = !!j.ai; STORE.guide = !!j.guide; STORE.app = !!j.app;
   } catch { STORE.ready = false; }
   return STORE.ready;
 }
@@ -23,7 +23,8 @@ function postFromStore(x){
   const date = new Date(y, mo-1, d);
   return { id: x.id || ('p' + Math.random().toString(36).slice(2, 9)), date, iso: x.iso, week: null, day: DAY_FULL[date.getDay()],
            bucket: x.bucket || '', hook: x.noHead ? '' : (x.hook || ''), noHead: !!x.noHead, post: x.post || '',
-           photoIdea: x.photoIdea || '', approved: !!x.approved, graphic: x.graphic || null, design: x.design || null };
+           photoIdea: x.photoIdea || '', approved: !!x.approved, graphic: x.graphic || null, design: x.design || null,
+           client: x.client || null };
 }
 function monthFromStore(data){
   const [y, mo] = data.month.split('-').map(Number), m = mo - 1;
@@ -32,7 +33,8 @@ function monthFromStore(data){
 }
 function storeFromMonth(month){
   return { approved: !!month.approved, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
-           post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved, graphic:p.graphic || null, design:p.design || null })) };
+           post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved, graphic:p.graphic || null, design:p.design || null,
+           client:p.client || null })) };
 }
 
 // The generator's months from this one on.
@@ -96,6 +98,8 @@ function attachGraphic(p, saved, design){
   touchMonth(month);
 }
 const driveThumb = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 400);
+// the app keeps graphics itself (/api/file/…); the Apps Script version keeps them in Drive
+const graphicSrc = (g, w) => g && g.url && /^\//.test(g.url) ? g.url : driveThumb(g.id, w);
 
 async function openDesign(p){
   const d = p.design; if (!d || !d.state) return;
@@ -118,8 +122,11 @@ function renderCalendarStatusOnly(){ const m = curMonth(); if (m && m.source ===
 // ---------- the panel's status line for a generator month ----------
 function calStatusText(month){
   const ok = month.posts.filter(p => p.approved).length;
+  const cOk = month.posts.filter(p => p.client && p.client.decision === 'approved').length;
+  const cCh = month.posts.filter(p => p.client && p.client.decision === 'changes').length;
   return month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · in the generator'
     + ' · ' + (month.approved ? 'month approved ✓' : ok + ' of ' + month.posts.length + ' approved')
+    + (cOk || cCh ? ' · client: ' + cOk + ' approved' + (cCh ? ', ' + cCh + ' with changes' : '') : '')
     + (STORE.status ? ' · ' + STORE.status : '');
 }
 
@@ -145,13 +152,18 @@ function calEditor(detail, p, month){
     onchange:e=>edit(()=>{ p.approved = e.target.checked; renderCalendar(); })}), ' Approved');
   const graphic = p.graphic
     ? h('div',{class:'ce-graphic'},
-        h('img',{src:driveThumb(p.graphic.id, 400), alt:'Saved graphic', loading:'lazy'}),
+        h('img',{src:graphicSrc(p.graphic, 400), alt:'Saved graphic', loading:'lazy'}),
         h('div',{class:'ce-gbtns'},
           p.design ? h('button',{class:'btn sm',title:'Put this graphic back on the canvas to change it',onclick:()=>openDesign(p)}, 'Open design') : null,
-          h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, 'View in Drive')))
+          h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, STORE.app ? 'Full size' : 'View in Drive')))
     : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
+  const said = p.client
+    ? h('div',{class:'ce-client ' + p.client.decision},
+        (p.client.decision === 'approved' ? '\u2713 Client approved' : '\u270e Client asked for changes') + (p.client.name ? ' \u2014 ' + p.client.name : ''),
+        p.client.note ? h('div',{class:'ce-note'}, '\u201c' + p.client.note + '\u201d') : null)
+    : null;
   detail.append(h('div',{class:'ce'},
-    graphic,
+    said, graphic,
     h('div',{class:'ce-row'}, field('Date', date), field('Bucket', sel)),
     field('Hook text', hook), noHead,
     field('Post text', caption),
@@ -167,8 +179,10 @@ function monthTools(detail, month){
   detail.append(h('div',{class:'ce-row ce-month'},
     h('button',{class:'btn sm',title:'Add a post on another date',onclick:()=>addPost(month)}, '+ Add a post'),
     h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
-    h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, '\U0001F4C4 Client report (Sheet)'),
-    h('button',{class:'btn sm',title:'The same report as a page to save as PDF and email',onclick:()=>printReport(month)}, '\U0001F5A8 Printable report'),
+    STORE.app
+      ? h('button',{class:'btn sm primary',title:'A private link where the client sees each post with its graphic and approves it or asks for changes',onclick:()=>reviewLink(month)}, '\u{1F517} Send for client review')
+      : h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, '\u{1F4C4} Client report (Sheet)'),
+    h('button',{class:'btn sm',title:'The same report as a page to save as PDF and email',onclick:()=>printReport(month)}, '\u{1F5A8} Printable report'),
     h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:month.approved, onchange:e=>{ month.approved = e.target.checked; touchMonth(month); renderCalendar(); }}), ' Month approved')));
 }
 
@@ -224,11 +238,13 @@ function openDraftForm(){
     catch (err) { st.textContent = 'Couldn’t draft: ' + err.message; }
     finally { go.disabled = false; }
   };
-  box.append(h('div',{class:'ce'},
+  const formBox = h('div',{class:'ce'},
     h('div',{class:'ce-row'}, h('div',{class:'field ce-field'}, h('label',{}, 'Month'), month)),
     h('div',{class:'field ce-field'}, h('label',{}, 'Post on'), h('div',{class:'ce-days'}, ...days)),
     h('div',{class:'field ce-field'}, h('label',{}, 'This month'), notes),
-    h('div',{class:'ce-row ce-actions'}, go, h('button',{class:'btn link',onclick:()=>{ box.hidden = true; }}, 'Cancel')), st));
+    h('div',{class:'ce-row ce-actions'}, go, h('button',{class:'btn link',onclick:()=>{ box.hidden = true; }}, 'Cancel')), st);
+  box.append(formBox);
+  guideControls(formBox);
 }
 
 async function draftMonth(y, m, pickDays, notes, progress){
@@ -298,7 +314,7 @@ window.addEventListener('load', () => {
 function reportRows(month){
   return month.posts.map(p => ({ date: (p.date.getMonth()+1) + '/' + p.date.getDate() + '/' + p.date.getFullYear(),
     day: DAY_FULL[p.date.getDay()].charAt(0) + DAY_FULL[p.date.getDay()].slice(1).toLowerCase(),
-    bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post, fileId: p.graphic ? p.graphic.id : null }));
+    bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post, fileId: p.graphic ? p.graphic.id : null, src: p.graphic ? graphicSrc(p.graphic, 800) : null }));
 }
 function clientFull(){ return (window.BI_CLIENTS.find(c => c.slug === STUDIO.slug) || {}).full || STUDIO.name; }
 function missingGraphics(month){ return month.posts.filter(p => !p.graphic).length; }
@@ -320,7 +336,7 @@ function printReport(month){
   const esc = s => String(s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' })[c]);
   const rows = reportRows(month).map(r => `<tr>
     <td class="d"><b>${esc(r.day)}</b><br>${esc(r.date)}<div class="b">${esc(r.bucket)}</div></td>
-    <td class="g">${r.fileId ? `<img src="${driveThumb(r.fileId, 800)}" alt="">` : '<div class="none">Graphic coming</div>'}</td>
+    <td class="g">${r.src ? `<img src="${/^\//.test(r.src) ? location.origin + r.src : r.src}" alt="">` : '<div class="none">Graphic coming</div>'}</td>
     <td class="t">${r.hook ? `<div class="h">${esc(r.hook)}</div>` : '<div class="h muted">Photo only</div>'}<div class="p">${esc(r.post).replace(/\n/g, '<br>')}</div></td></tr>`).join('');
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(clientFull())} \u2014 ${esc(month.label)} social calendar</title>
 <meta name="robots" content="noindex">
@@ -343,4 +359,38 @@ function printReport(month){
   const url = URL.createObjectURL(new Blob([html], { type:'text/html' }));
   window.open(url, '_blank', 'noopener');
   setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// ---------- the app: client review link, messaging guide ----------
+async function reviewLink(month){
+  const missing = missingGraphics(month);
+  if (missing && !confirm(missing + ' post' + (missing === 1 ? ' has' : 's have') + ' no graphic saved yet; the client will see \u201cGraphic coming soon\u201d. Send the link anyway?')) return;
+  try {
+    const j = await drivePost({ action:'review.create', client:STUDIO.name, month: storeKey(month.y, month.m) }, false);
+    try { await navigator.clipboard.writeText(j.url); } catch {}
+    window.open(j.url, '_blank', 'noopener');
+    toast('Review link copied \u2014 send it to the client. Their answers appear on each post here.');
+  } catch (err) { toast('Couldn\u2019t make the link: ' + err.message); }
+}
+
+async function guideControls(box){
+  if (!STORE.app) return;
+  const row = h('div',{class:'field ce-field'}, h('label',{}, 'Messaging guide'), h('span',{class:'hint'}, 'Checking\u2026'));
+  box.prepend(row);
+  const show = async () => {
+    let g = null; try { g = (await drivePost({ action:'guide.get', client:STUDIO.name }, false)).guide; } catch {}
+    const input = h('input',{type:'file', accept:'.pdf,.txt,.md,application/pdf,text/plain', hidden:true, onchange: async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 20*1024*1024) { toast('That file is too big (20 MB max)'); return; }
+      const mime = /pdf$/i.test(f.name) || f.type === 'application/pdf' ? 'application/pdf' : 'text/plain';
+      try { await drivePost({ action:'guide.save', client:STUDIO.name, name:f.name, mime, data: await blobToBase64(f) }, false);
+        STORE.guide = true; toast('Messaging guide saved'); show(); }
+      catch (err) { toast('Couldn\u2019t save the guide: ' + err.message); }
+    }});
+    row.replaceChildren(h('label',{}, 'Messaging guide'),
+      h('div',{class:'ce-row ce-actions'},
+        g ? h('a',{href:g.url, target:'_blank', rel:'noopener', class:'btn link'}, g.name) : h('span',{class:'hint'}, 'None yet \u2014 drafts will go by recent posts.'),
+        h('button',{class:'btn sm', onclick:()=>input.click()}, g ? 'Replace' : 'Upload (PDF or text)'), input));
+  };
+  show();
 }

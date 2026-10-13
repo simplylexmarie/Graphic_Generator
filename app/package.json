@@ -1,0 +1,17 @@
+{
+  "name": "graphic-generator-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "db:init": "wrangler d1 execute graphic-generator --local --file schema.sql",
+    "dev": "npm run build && wrangler pages dev",
+    "deploy": "npm run build && wrangler pages deploy"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.150.0"
+  }
+}
