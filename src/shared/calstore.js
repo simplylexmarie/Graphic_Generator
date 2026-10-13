@@ -159,7 +159,7 @@ function calEditor(detail, p, month){
           h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, STORE.app ? 'Full size' : 'View in Drive')))
     : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
   // what the client said: the post's status, then every note they left on it
-  const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined' };
+  const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined', edited:'\u270e Client edited the graphic' };
   const notes = (p.clientComments || []).filter(c => c.note);
   const said = p.client || notes.length
     ? h('div',{class:'ce-client ' + (p.client ? p.client.decision : 'comment')},

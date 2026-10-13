@@ -15,6 +15,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 const MODEL = 'claude-opus-5-5';
+export const CLIENT_SLUGS = { 'Spring Forth': 'springforth', 'Bakken-Young': 'bakken-young', 'McMillan': 'mcmillan' };
 const CLIENT_NAMES = { 'Spring Forth': 'Spring Forth Academy', 'Bakken-Young': 'Bakken-Young Funeral & Cremation Services', 'McMillan': 'McMillan Precision Electric Motors' };
 const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json' } });
 const now = () => new Date().toISOString();
@@ -25,6 +26,8 @@ export async function onRequest({ request, env, params }) {
   try {
     if (parts[0] === 'review') {
       if (parts[1] === 'file' && request.method === 'GET') return reviewFile(env, url);
+      if (parts[1] === 'design' && request.method === 'GET') return json(await reviewDesign(env, url.searchParams.get('t'), url.searchParams.get('post')));
+      if (parts[1] === 'graphic' && request.method === 'POST') return json(await reviewGraphic(env, await request.json()));
       if (request.method === 'GET') return json(await reviewGet(env, url.searchParams.get('t')));
       if (request.method === 'POST') return json(await reviewRespond(env, await request.json()));
       return json({ ok: false, error: 'method' }, 405);
@@ -269,11 +272,11 @@ async function reviewGet(env, t) {
   const thread = id => rows.filter(x => x.post_id === id && (x.note || x.decision !== 'comment'))
     .map(x => ({ decision: x.decision, note: x.note, name: x.name, at: x.created_at }));
   const full = (CLIENT_NAMES[r.client] || r.client);
-  return { ok: true, client: r.client, clientFull: full, month: r.month, label,
+  return { ok: true, client: r.client, clientFull: full, slug: CLIENT_SLUGS[r.client] || null, month: r.month, label,
     posts: (data.posts || []).slice().sort((a, b2) => a.iso < b2.iso ? -1 : 1).map(p => ({
       id: p.id, iso: p.iso, bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post,
       graphic: p.graphic && p.graphic.id ? '/api/review/file?t=' + encodeURIComponent(t) + '&k=' + encodeURIComponent(p.graphic.id) : null,
-      client: p.client || null, thread: thread(p.id) })) };
+      client: p.client || null, thread: thread(p.id), editable: !!(p.design && p.design.state) })) };
 }
 async function reviewFile(env, url) {
   const t = url.searchParams.get('t'), k = url.searchParams.get('k');
@@ -304,6 +307,54 @@ async function reviewRespond(env, b) {
     const res = await env.DB.prepare('UPDATE months SET data = ?, rev = ?, updated_at = ? WHERE client = ? AND month = ? AND rev = ?')
       .bind(JSON.stringify(store), rev, at, r.client, r.month, data.rev).run();
     if (res.meta.changes) return { ok: true, client: post.client || null, entry: { decision: b.decision, note, name, at } };
+  }
+  return { ok: false, error: 'Please try again' };
+}
+
+// ---------- the client editing a graphic ----------
+async function reviewDesign(env, t, postId) {
+  const r = await reviewByToken(env, t);
+  if (!r) return { ok: false, error: 'This review link isn’t valid' };
+  const data = await monthData(env, r.client, r.month);
+  const post = data && (data.posts || []).find(p => p.id === postId);
+  if (!post || !post.design || !post.design.state) return { ok: false, error: 'This graphic can’t be edited here' };
+  return { ok: true, design: post.design, label: r.client + ' \u2014 ' + post.iso };
+}
+
+/** b: { t, postId, png (base64), design, name } — the client's edited graphic replaces the post's */
+async function reviewGraphic(env, b) {
+  const r = await reviewByToken(env, b.t);
+  if (!r) return { ok: false, error: 'This review link isn’t valid' };
+  if (!b.png || b.png.length > 30e6) return { ok: false, error: 'That graphic is too large' };
+  const [y, m] = r.month.split('-').map(Number);
+  const label = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const at = now(), name = String(b.name || '').slice(0, 120);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const data = await monthData(env, r.client, r.month);
+    const post = data && (data.posts || []).find(p => p.id === b.postId);
+    if (!post) return { ok: false, error: 'That post isn’t on this month any more' };
+    // a new file each time; the team's original stays in storage and is remembered on the post
+    const base = (post.graphic && post.graphic.id ? post.graphic.id.split('/').pop() : post.iso + '.png').replace(/(-client-\d+)?\.png$/, '');
+    const key = ['graphics', r.client, label, base + '-client-' + Date.now() + '.png'].join('/');
+    if (attempt === 0) await env.FILES.put(key, b64ToBytes(b.png), { httpMetadata: { contentType: 'image/png' } });
+    if (post.graphic && !post.graphicOriginal) post.graphicOriginal = post.graphic;
+    post.graphic = { id: key, url: '/api/file/' + encodeURIComponent(key), savedAt: at, by: 'client' };
+    if (b.design && b.design.state) {
+      post.design = b.design;
+      // the headline they typed on the graphic becomes the post's headline too
+      const hl = (b.design.state.els || []).find(e => e.id === 'headline');
+      if (hl && typeof hl.text === 'string' && !post.noHead) post.hook = hl.text.replace(/\n+/g, ' ').trim();
+    }
+    post.client = { decision: 'edited', note: 'Edited the graphic', name, at };
+    post.clientComments = (post.clientComments || []).concat([{ decision: 'edited', note: 'Edited the graphic', name, at }]).slice(-30);
+    const rev = data.rev + 1, store = Object.assign({}, data); delete store.rev; delete store.month; delete store.updatedAt;
+    const res = await env.DB.prepare('UPDATE months SET data = ?, rev = ?, updated_at = ? WHERE client = ? AND month = ? AND rev = ?')
+      .bind(JSON.stringify(store), rev, at, r.client, r.month, data.rev).run();
+    if (res.meta.changes) {
+      await env.DB.prepare('INSERT INTO responses (token, post_id, decision, note, name, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(b.t, b.postId, 'edited', 'Edited the graphic', name, at).run();
+      return { ok: true };
+    }
   }
   return { ok: false, error: 'Please try again' };
 }

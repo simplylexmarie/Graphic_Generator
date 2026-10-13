@@ -17,7 +17,7 @@ has one.
 import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 SHARED = ROOT / 'src/shared'
-MODULES = ['calendar.js', 'options.js', 'month.js', 'calstore.js', 'clear.js', 'zoom.js']
+MODULES = ['clientmode.js', 'calendar.js', 'options.js', 'month.js', 'calstore.js', 'clear.js', 'zoom.js']
 
 CAL_SECTION = """    <div class="sec" id="calSec" hidden>
       <h2>Calendar <button class="btn link" id="calSync" title="Re-read the sheet now">Refresh</button> <button class="btn link" id="calOpen" title="Open the schedule in Google Sheets">Open calendar</button></h2>
@@ -81,4 +81,8 @@ def apply(html, slug):
     html = _rep(html, 'saveBlob(blob, filename()); markUsed();',
                 'saveBlob(blob, filename()); markUsed(); markPostDone(selectedPost());')
     html = _rep(html, '// ---------- misc ----------', js + '\n// ---------- misc ----------')
+    # a signal that start-up has finished, for anything that must run after it (client editing)
+    html = _rep(html, '  await fontsReady(); render();\n  try { document.fonts.ready.then(render); } catch {}\n})();',
+                '  await fontsReady(); render();\n  try { document.fonts.ready.then(render); } catch {}\n'
+                '  window.__studioReady = true; window.dispatchEvent(new Event(\'studio-ready\'));\n})();')
     return html

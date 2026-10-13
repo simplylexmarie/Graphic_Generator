@@ -233,6 +233,16 @@ canvas#c.dragging{cursor:grabbing}
 .ce-note{margin-top:3px;font-style:italic}
 .ce-client.declined{background:rgba(179,38,30,.15);color:#f28b82}
 .ce-client.comment{background:rgba(15,127,191,.15);color:#6cc0f0}
+/* a client editing one graphic from their review link: just the canvas and the piece they picked */
+.client-edit .top .home,.client-edit #profileSel,.client-edit #clearBtn,.client-edit #saveBtn,.client-edit #dlAllBtn,
+.client-edit #driveBtn,.client-edit #dlBtn,.client-edit #left,.client-edit .toolbar .btn,.client-edit #opts,
+.client-edit #monthSec,.client-edit #welcome,.client-edit #right .sec:has(#drafts){display:none!important}
+.client-edit .app{grid-template-columns:minmax(0,1fr) 320px}
+@media (max-width:900px){.client-edit .app{grid-template-columns:1fr}}
+.client-bar{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.client-bar-text{flex:1;min-width:220px;display:flex;flex-direction:column;font-size:13px}
+.client-bar-text span{opacity:.75}
+.ce-client.edited{background:rgba(15,127,191,.15);color:#6cc0f0}
 </style>
 </head>
 <body>
@@ -1785,6 +1795,71 @@ const STUDIO = {
   },
 };
 
+// ---------- client editing (opened from a review link) ----------
+// The review page can open a post's graphic here for the client to adjust: edit the headline,
+// drag and resize things, zoom or reposition the photo. Everything else in the studio is hidden.
+// The page is served through /review/studio/… (see app/functions/review/studio), which only works
+// with that month's review link, and "Save my changes" goes back through the review API.
+const CLIENT_EDIT = (() => {
+  if (!/^\/review\/studio\//.test(location.pathname)) return null;
+  const q = new URLSearchParams(location.search);
+  return { t: q.get('t'), post: q.get('post') };
+})();
+if (CLIENT_EDIT) document.documentElement.classList.add('client-edit');
+
+async function clientEditStart(){
+  const bar = h('div',{class:'client-bar'},
+    h('div',{class:'client-bar-text'}, h('b',{}, 'Edit this graphic'),
+      h('span',{}, 'Click the headline or any piece to change it. Drag to move, use the corners to resize, scroll or pinch to zoom the photo.')),
+    h('button',{class:'btn sm', onclick: () => clientBack()}, 'Cancel'),
+    h('button',{class:'btn primary', id:'clientSave', onclick: clientSaveEdit}, 'Save my changes'));
+  document.body.prepend(bar);
+  hideWelcome();
+  $('#loading').classList.add('show');
+  try {
+    const j = await (await fetch('/api/review/design?t=' + encodeURIComponent(CLIENT_EDIT.t) + '&post=' + encodeURIComponent(CLIENT_EDIT.post))).json();
+    if (!j.ok) throw new Error(j.error || 'This graphic can’t be edited');
+    const d = j.design;
+    Object.assign(S, clone(d.state)); S.sel = null;
+    IMG.bg = null; IMG.src = d.src ? clone(d.src) : null;
+    const load = url => (typeof libImage === 'function' ? libImage(url) : new Promise((res, rej) => {
+      const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = url; }));
+    if (d.src && d.src.url) IMG.bg = await load(d.src.url);
+    await Promise.all(S.els.filter(e => e.type === 'image').map(e => load(e.src).catch(() => null)));
+    if (S.bg.cells) await Promise.all(S.bg.cells.map(c => load(c.url).catch(() => null)));
+    document.title = 'Edit graphic — ' + j.label;
+  } catch (err) {
+    bar.querySelector('.client-bar-text span').textContent = err.message;
+    $('#clientSave').disabled = true;
+  } finally { $('#loading').classList.remove('show'); }
+  // the first headline is selected so its text box is right there in the panel
+  S.sel = (byId('headline') || {}).id || null;
+  syncControls(); renderInspector(); renderQuickFields(); fitCanvas();
+}
+
+function clientBack(opened){
+  location.href = '/review/?t=' + encodeURIComponent(CLIENT_EDIT.t) + (opened ? '&open=' + encodeURIComponent(CLIENT_EDIT.post) : '');
+}
+
+async function clientSaveEdit(){
+  const btn = $('#clientSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await fontsReady();
+    S.sel = null;
+    const png = await blobToBase64(await renderBlob());
+    const src = IMG.src && IMG.src.kind !== 'own' ? clone(IMG.src) : null;
+    let name = ''; try { name = localStorage.getItem('review-name') || ''; } catch {}
+    const r = await fetch('/api/review/graphic', { method:'POST', headers:{ 'content-type':'application/json' },
+      body: JSON.stringify({ t: CLIENT_EDIT.t, postId: CLIENT_EDIT.post, png, name, design: { state: JSON.parse(snapshot()), src } }) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'Couldn’t save');
+    clientBack(true);
+  } catch (err) { toast('Couldn’t save: ' + err.message); btn.disabled = false; btn.textContent = 'Save my changes'; }
+}
+
+// wait for the studio's own start-up to finish, so it can't paint over the client's graphic
+if (CLIENT_EDIT) { if (window.__studioReady) clientEditStart(); else window.addEventListener('studio-ready', clientEditStart, { once:true }); }
+
 // ---------- the social calendar ----------
 // Karissa's posting schedule lives in a Google Sheet, one tab per month, shared as
 // "anyone with the link can view". The studio reads it straight from the browser through
@@ -1810,6 +1885,7 @@ const CAL = { months:[], cur:null, view:null, state:'idle', note:'', probing:fal
 // clients.js is loaded at the end of the body, so this resolves lazily rather than at parse
 // time. A client with no calendar block simply doesn't get the panel.
 function calCfg(){
+  if (typeof CLIENT_EDIT !== 'undefined' && CLIENT_EDIT) return null;     // a client editing one graphic gets no calendar
   const c = (window.BI_CLIENTS || []).find(x => x.slug === STUDIO.slug);
   return (c && c.calendar) || null;
 }
@@ -2716,7 +2792,7 @@ function calEditor(detail, p, month){
           h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, STORE.app ? 'Full size' : 'View in Drive')))
     : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
   // what the client said: the post's status, then every note they left on it
-  const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined' };
+  const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined', edited:'\u270e Client edited the graphic' };
   const notes = (p.clientComments || []).filter(c => c.note);
   const said = p.client || notes.length
     ? h('div',{class:'ce-client ' + (p.client ? p.client.decision : 'comment')},
@@ -3057,10 +3133,11 @@ async function fontsReady(){
   loadLibrary();
   await fontsReady(); render();
   try { document.fonts.ready.then(render); } catch {}
+  window.__studioReady = true; window.dispatchEvent(new Event('studio-ready'));
 })();
 })();
 </script>
-<script src="../clients.js?v=202610131605"></script>
+<script src="../clients.js?v=202610131610"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {

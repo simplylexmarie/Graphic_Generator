@@ -49,10 +49,10 @@ h1{font-family:var(--display);font-size:clamp(26px,4vw,38px);line-height:1.1;mar
 .progress{display:flex;flex-direction:column;gap:6px;min-width:min(100%,300px)}
 .progress .bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--pend-soft)}
 .progress .bar i{display:block;height:100%}
-.bar .approved{background:var(--ok)} .bar .changes{background:var(--warn)} .bar .declined{background:var(--no)}
+.bar .approved{background:var(--ok)} .bar .changes{background:var(--warn)} .bar .declined{background:var(--no)} .bar .edited{background:var(--accent)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--pend)}
-.dot.approved{background:var(--ok)} .dot.changes{background:var(--warn)} .dot.declined{background:var(--no)}
+.dot.approved{background:var(--ok)} .dot.changes{background:var(--warn)} .dot.declined{background:var(--no)} .dot.edited{background:var(--accent)}
 
 /* toolbar */
 .tools{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border-bottom:1px solid var(--line)}
@@ -70,7 +70,7 @@ h1{font-family:var(--display);font-size:clamp(26px,4vw,38px);line-height:1.1;mar
 .media img{width:100%;height:100%;object-fit:cover;display:block}
 .media .none{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:var(--muted);font-size:13px}
 .ring{position:absolute;right:8px;top:8px;width:20px;height:20px;border-radius:50%;border:2px solid var(--surface);background:var(--pend);box-shadow:0 1px 3px rgba(0,0,0,.3)}
-.ring.approved{background:var(--ok)} .ring.changes{background:var(--warn)} .ring.declined{background:var(--no)}
+.ring.approved{background:var(--ok)} .ring.changes{background:var(--warn)} .ring.declined{background:var(--no)} .ring.edited{background:var(--accent)}
 
 /* calendar */
 .cal{margin-top:16px}
@@ -102,7 +102,8 @@ h1{font-family:var(--display);font-size:clamp(26px,4vw,38px);line-height:1.1;mar
 .copy{margin:8px 0;white-space:pre-line;max-width:62ch;overflow-wrap:anywhere}
 .empty{padding:48px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;background:var(--pend-soft);color:var(--pend)}
-.pill.approved{background:var(--ok-soft);color:var(--ok)} .pill.changes{background:var(--warn-soft);color:var(--warn)} .pill.declined{background:var(--no-soft);color:var(--no)}
+.pill.approved{background:var(--ok-soft);color:var(--ok)} .pill.changes{background:var(--warn-soft);color:var(--warn)} .pill.declined{background:var(--no-soft);color:var(--no)} .pill.edited{background:var(--accent-soft);color:var(--accent)}
+.edit-btn{display:inline-block;text-decoration:none;color:inherit;margin-top:4px}
 .pill .dot{margin:0;background:currentColor}
 .chip{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;border:1px solid var(--line);color:var(--accent);background:var(--accent-soft);text-transform:uppercase;letter-spacing:.04em}
 .count{font-size:12px;color:var(--muted)}
@@ -196,8 +197,8 @@ const el = (tag, attrs, ...kids) => {
   for (const c of kids.flat()) if (c != null && c !== false) n.append(c);
   return n;
 };
-const STATUS = { pending:'To review', approved:'Approved', changes:'Changes requested', declined:'Declined' };
-const FILTERS = [['all','All'], ['pending','To review'], ['approved','Approved'], ['changes','Changes'], ['declined','Declined']];
+const STATUS = { pending:'To review', approved:'Approved', changes:'Changes requested', declined:'Declined', edited:'Edited' };
+const FILTERS = [['all','All'], ['pending','To review'], ['approved','Approved'], ['changes','Changes'], ['edited','Edited'], ['declined','Declined']];
 const store = { get(k){ try { return localStorage.getItem(k) || ''; } catch { return ''; } }, set(k, v){ try { localStorage.setItem(k, v); } catch {} } };
 let DATA = null, VIEW = store.get('review-view') || 'cal', FILTER = 'all', OPEN = -1;
 
@@ -222,22 +223,25 @@ async function load(){
   name.addEventListener('input', () => { store.set('review-name', name.value.trim()); name.classList.remove('need'); });
   $('#vCal').onclick = () => setView('cal'); $('#vList').onclick = () => setView('list');
   render();
+  const reopen = new URLSearchParams(location.search).get('open');
+  const at = DATA.posts.findIndex(p => p.id === reopen);
+  if (at >= 0) openPost(at);
 }
 function fail(msg){ $('#sub').textContent = ''; $('#main').replaceChildren(el('div', { class:'err' }, msg)); }
 function setView(v){ VIEW = v; store.set('review-view', v); render(); }
 
 function render(){
   // progress
-  const n = { approved:0, changes:0, declined:0, pending:0 };
+  const n = { approved:0, changes:0, edited:0, declined:0, pending:0 };
   DATA.posts.forEach(p => n[statusOf(p)]++);
   const total = DATA.posts.length || 1;
-  $('#bar').replaceChildren(...['approved','changes','declined'].map(s => el('i', { class:s, style:'width:' + (100*n[s]/total) + '%' })));
+  $('#bar').replaceChildren(...['approved','changes','edited','declined'].map(s => el('i', { class:s, style:'width:' + (100*n[s]/total) + '%' })));
   $('#bar').setAttribute('aria-label', n.approved + ' approved, ' + n.changes + ' with changes, ' + n.declined + ' declined, ' + n.pending + ' to review');
-  $('#legend').replaceChildren(...['approved','changes','declined','pending'].map(s =>
+  $('#legend').replaceChildren(...['approved','changes','edited','declined','pending'].filter(s => s !== 'edited' || n.edited).map(s =>
     el('span', {}, el('span', { class:'dot ' + s }), n[s] + ' ' + STATUS[s].toLowerCase())));
   // toolbar
   $('#vCal').setAttribute('aria-pressed', String(VIEW === 'cal')); $('#vList').setAttribute('aria-pressed', String(VIEW === 'list'));
-  $('#filters').replaceChildren(...FILTERS.map(([k, label]) => el('button', { 'aria-pressed':String(FILTER === k), onclick:() => { FILTER = k; render(); } },
+  $('#filters').replaceChildren(...FILTERS.filter(([k]) => k !== 'edited' || n.edited).map(([k, label]) => el('button', { 'aria-pressed':String(FILTER === k), onclick:() => { FILTER = k; render(); } },
     label + (k === 'all' ? '' : ' ' + n[k]))));
   const list = shown();
   $('#main').replaceChildren(!list.length ? el('div', { class:'empty' }, 'Nothing here — try another filter.')
@@ -321,6 +325,8 @@ function openPost(i, keep){
     el('div', { class:'dlg', role:'dialog', 'aria-modal':'true', 'aria-labelledby':'dlgTitle' },
       el('div', { class:'left' },
         el('div', { class:'stage' }, media(p, true)),
+        p.editable && DATA.slug ? el('a', { class:'go ghost edit-btn', href:'/review/studio/' + DATA.slug + '/?t=' + encodeURIComponent(T) + '&post=' + encodeURIComponent(p.id),
+          title:'Change the headline, move things, or zoom the photo' }, '\u270e Edit this graphic') : null,
         el('div', { class:'pn' },
           el('button', { class:'btn', disabled: at <= 0, onclick:() => step(-1), 'aria-label':'Previous post' }, '← Previous'),
           el('span', {}, 'Post ' + (at + 1) + ' of ' + order.length),
@@ -336,7 +342,7 @@ function openPost(i, keep){
         box,
         thread.length ? el('div', { class:'cmts' }, el('div', { class:'eyebrow' }, 'Notes on this post'),
           ...thread.map(c => el('div', { class:'cmt' },
-            el('small', {}, (c.name || 'Someone') + ' · ' + ({ approved:'approved', changes:'asked for changes', declined:'declined', comment:'left feedback' })[c.decision] + ' · ' + when(c.at)),
+            el('small', {}, (c.name || 'Someone') + ' · ' + ({ approved:'approved', changes:'asked for changes', declined:'declined', comment:'left feedback', edited:'edited the graphic' })[c.decision] + ' · ' + when(c.at)),
             c.note || ''))) : null,
         el('p', { class:'hint' }, 'Your answers save as you go, and the team sees them right away.')))));
   document.body.style.overflow = 'hidden';

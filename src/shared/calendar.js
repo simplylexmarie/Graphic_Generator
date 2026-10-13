@@ -23,6 +23,7 @@ const CAL = { months:[], cur:null, view:null, state:'idle', note:'', probing:fal
 // clients.js is loaded at the end of the body, so this resolves lazily rather than at parse
 // time. A client with no calendar block simply doesn't get the panel.
 function calCfg(){
+  if (typeof CLIENT_EDIT !== 'undefined' && CLIENT_EDIT) return null;     // a client editing one graphic gets no calendar
   const c = (window.BI_CLIENTS || []).find(x => x.slug === STUDIO.slug);
   return (c && c.calendar) || null;
 }
