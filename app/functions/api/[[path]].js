@@ -15,6 +15,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 const MODEL = 'claude-opus-5-5';
+const CLIENT_NAMES = { 'Spring Forth': 'Spring Forth Academy', 'Bakken-Young': 'Bakken-Young Funeral & Cremation Services', 'McMillan': 'McMillan Precision Electric Motors' };
 const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json' } });
 const now = () => new Date().toISOString();
 
@@ -77,7 +78,9 @@ const ACTIONS = {
     const data = Object.assign({}, b.data);
     delete data.rev; delete data.month; delete data.updatedAt;
     // a save from the studio can't wipe out the client's answers that arrived meanwhile
-    if (cur) for (const p of data.posts || []) { const was = (cur.posts || []).find(x => x.id === p.id); if (was && was.client && !p.client) p.client = was.client; }
+    if (cur) for (const p of data.posts || []) { const was = (cur.posts || []).find(x => x.id === p.id); if (!was) continue;
+      if (was.client && !p.client) p.client = was.client;
+      if ((was.clientComments || []).length > (p.clientComments || []).length) p.clientComments = was.clientComments; }
     const res = await env.DB.prepare(
       `INSERT INTO months (client, month, data, rev, updated_at) VALUES (?, ?, ?, ?, ?)
        ON CONFLICT (client, month) DO UPDATE SET data = excluded.data, rev = excluded.rev, updated_at = excluded.updated_at
@@ -262,11 +265,15 @@ async function reviewGet(env, t) {
   if (!data) return { ok: false, error: 'This month isn’t available' };
   const [y, m] = r.month.split('-').map(Number);
   const label = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-  return { ok: true, client: r.client, month: r.month, label,
+  const rows = (await env.DB.prepare('SELECT post_id, decision, note, name, created_at FROM responses WHERE token = ? ORDER BY id').bind(t).all()).results;
+  const thread = id => rows.filter(x => x.post_id === id && (x.note || x.decision !== 'comment'))
+    .map(x => ({ decision: x.decision, note: x.note, name: x.name, at: x.created_at }));
+  const full = (CLIENT_NAMES[r.client] || r.client);
+  return { ok: true, client: r.client, clientFull: full, month: r.month, label,
     posts: (data.posts || []).slice().sort((a, b2) => a.iso < b2.iso ? -1 : 1).map(p => ({
       id: p.id, iso: p.iso, bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post,
       graphic: p.graphic && p.graphic.id ? '/api/review/file?t=' + encodeURIComponent(t) + '&k=' + encodeURIComponent(p.graphic.id) : null,
-      client: p.client || null })) };
+      client: p.client || null, thread: thread(p.id) })) };
 }
 async function reviewFile(env, url) {
   const t = url.searchParams.get('t'), k = url.searchParams.get('k');
@@ -280,7 +287,9 @@ async function reviewFile(env, url) {
 async function reviewRespond(env, b) {
   const r = await reviewByToken(env, b.t);
   if (!r) return { ok: false, error: 'This review link isn’t valid' };
-  if (!['approved', 'changes'].includes(b.decision)) return { ok: false, error: 'decision' };
+  // approved | changes | declined set the post's status; comment is feedback without a decision
+  if (!['approved', 'changes', 'declined', 'comment'].includes(b.decision)) return { ok: false, error: 'decision' };
+  if ((b.decision === 'changes' || b.decision === 'comment') && !String(b.note || '').trim()) return { ok: false, error: 'Please write your feedback first' };
   const at = now(), note = String(b.note || '').slice(0, 4000), name = String(b.name || '').slice(0, 120);
   await env.DB.prepare('INSERT INTO responses (token, post_id, decision, note, name, created_at) VALUES (?, ?, ?, ?, ?, ?)')
     .bind(b.t, b.postId, b.decision, note, name, at).run();
@@ -289,11 +298,12 @@ async function reviewRespond(env, b) {
     const data = await monthData(env, r.client, r.month);
     const post = data && (data.posts || []).find(p => p.id === b.postId);
     if (!post) return { ok: false, error: 'That post isn’t on this month any more' };
-    post.client = { decision: b.decision, note, name, at };
+    if (b.decision !== 'comment') post.client = { decision: b.decision, note, name, at };
+    post.clientComments = (post.clientComments || []).concat(note ? [{ decision: b.decision, note, name, at }] : []).slice(-30);
     const rev = data.rev + 1, store = Object.assign({}, data); delete store.rev; delete store.month; delete store.updatedAt;
     const res = await env.DB.prepare('UPDATE months SET data = ?, rev = ?, updated_at = ? WHERE client = ? AND month = ? AND rev = ?')
       .bind(JSON.stringify(store), rev, at, r.client, r.month, data.rev).run();
-    if (res.meta.changes) return { ok: true, client: post.client };
+    if (res.meta.changes) return { ok: true, client: post.client || null, entry: { decision: b.decision, note, name, at } };
   }
   return { ok: false, error: 'Please try again' };
 }

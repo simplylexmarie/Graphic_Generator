@@ -24,7 +24,7 @@ function postFromStore(x){
   return { id: x.id || ('p' + Math.random().toString(36).slice(2, 9)), date, iso: x.iso, week: null, day: DAY_FULL[date.getDay()],
            bucket: x.bucket || '', hook: x.noHead ? '' : (x.hook || ''), noHead: !!x.noHead, post: x.post || '',
            photoIdea: x.photoIdea || '', approved: !!x.approved, graphic: x.graphic || null, design: x.design || null,
-           client: x.client || null };
+           client: x.client || null, clientComments: x.clientComments || [] };
 }
 function monthFromStore(data){
   const [y, mo] = data.month.split('-').map(Number), m = mo - 1;
@@ -34,7 +34,7 @@ function monthFromStore(data){
 function storeFromMonth(month){
   return { approved: !!month.approved, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
            post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved, graphic:p.graphic || null, design:p.design || null,
-           client:p.client || null })) };
+           client:p.client || null, clientComments:p.clientComments || [] })) };
 }
 
 // The generator's months from this one on.
@@ -124,9 +124,10 @@ function calStatusText(month){
   const ok = month.posts.filter(p => p.approved).length;
   const cOk = month.posts.filter(p => p.client && p.client.decision === 'approved').length;
   const cCh = month.posts.filter(p => p.client && p.client.decision === 'changes').length;
+  const cNo = month.posts.filter(p => p.client && p.client.decision === 'declined').length;
   return month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · in the generator'
     + ' · ' + (month.approved ? 'month approved ✓' : ok + ' of ' + month.posts.length + ' approved')
-    + (cOk || cCh ? ' · client: ' + cOk + ' approved' + (cCh ? ', ' + cCh + ' with changes' : '') : '')
+    + (cOk || cCh || cNo ? ' · client: ' + cOk + ' approved' + (cCh ? ', ' + cCh + ' with changes' : '') + (cNo ? ', ' + cNo + ' declined' : '') : '')
     + (STORE.status ? ' · ' + STORE.status : '');
 }
 
@@ -157,10 +158,13 @@ function calEditor(detail, p, month){
           p.design ? h('button',{class:'btn sm',title:'Put this graphic back on the canvas to change it',onclick:()=>openDesign(p)}, 'Open design') : null,
           h('a',{class:'btn link',href:p.graphic.url,target:'_blank',rel:'noopener'}, STORE.app ? 'Full size' : 'View in Drive')))
     : h('p',{class:'hint',style:'margin:0'}, 'No graphic saved for this day yet \u2014 make one, then \u201cSave to ' + postLabel(p) + '\u201d.');
-  const said = p.client
-    ? h('div',{class:'ce-client ' + p.client.decision},
-        (p.client.decision === 'approved' ? '\u2713 Client approved' : '\u270e Client asked for changes') + (p.client.name ? ' \u2014 ' + p.client.name : ''),
-        p.client.note ? h('div',{class:'ce-note'}, '\u201c' + p.client.note + '\u201d') : null)
+  // what the client said: the post's status, then every note they left on it
+  const verdict = { approved:'\u2713 Client approved', changes:'\u270e Client asked for changes', declined:'\u2715 Client declined' };
+  const notes = (p.clientComments || []).filter(c => c.note);
+  const said = p.client || notes.length
+    ? h('div',{class:'ce-client ' + (p.client ? p.client.decision : 'comment')},
+        p.client ? verdict[p.client.decision] + (p.client.name ? ' \u2014 ' + p.client.name : '') : 'Client feedback',
+        ...notes.slice(-5).map(c => h('div',{class:'ce-note'}, '\u201c' + c.note + '\u201d' + (c.name ? ' \u2014 ' + c.name : ''))))
     : null;
   detail.append(h('div',{class:'ce'},
     said, graphic,

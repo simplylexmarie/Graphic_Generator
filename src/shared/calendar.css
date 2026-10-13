@@ -54,3 +54,5 @@
 .ce-client.approved{background:rgba(31,157,85,.15);color:#3fbf78}
 .ce-client.changes{background:rgba(199,119,0,.15);color:#e0a040}
 .ce-note{margin-top:3px;font-style:italic}
+.ce-client.declined{background:rgba(179,38,30,.15);color:#f28b82}
+.ce-client.comment{background:rgba(15,127,191,.15);color:#6cc0f0}
