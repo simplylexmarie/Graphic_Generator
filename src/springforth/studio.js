@@ -69,6 +69,9 @@ function contextWants(p){
   const add = (tags, w) => tags.forEach((t, i) => { want[t] = (want[t] || 0) + w - i*0.25; });
   const txt = ((p.hook || '') + ' ' + captionBody(p.post)).toLowerCase();
   for (const [re, tags] of CONTEXT_TAGS) if (re.test(txt)) add(tags, 3);
+  // a photo idea written for the post (by Claude or by hand) says what the picture should be
+  const idea = String(p.photoIdea || '').toLowerCase();
+  if (idea) for (const [re, tags] of CONTEXT_TAGS) if (re.test(idea)) add(tags, 5);
   for (const part of String(p.bucket || '').split(/[\/,&]+/)) {
     // an enrollment post is about the school as a whole, whatever its caption mentions
     const key = part.trim().toLowerCase(), tags = BUCKET_TAGS[key];

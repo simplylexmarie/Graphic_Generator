@@ -212,6 +212,18 @@ canvas#c.dragging{cursor:grabbing}
 .opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}
 .opt span{font-size:11px;opacity:.8}
 .cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
+.ce{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.ce-row{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.ce-row>.ce-field{flex:1;min-width:110px}
+.ce-field{margin:0}
+.ce-field label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;display:block;margin-bottom:3px}
+.ce-field input,.ce-field select,.ce-field textarea{width:100%;font:inherit;font-size:12px;box-sizing:border-box}
+.ce-field textarea{line-height:1.45;resize:vertical}
+.ce-check{font-size:11px;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ce-days{display:flex;flex-wrap:wrap;gap:4px 10px}
+.ce-actions{align-items:center}
+.ce-month{margin-top:8px;align-items:center}
+.btn.danger{color:#e66}
 </style>
 </head>
 <body>
@@ -243,6 +255,9 @@ canvas#c.dragging{cursor:grabbing}
         <button class="btn sm" id="calNext" title="Next month with a tab" aria-label="Next month">›</button>
       </div>
       <p class="hint" id="calStatus"></p>
+      <button class="btn sm gen" id="calDraftBtn" hidden style="width:100%;margin-bottom:6px" title="Claude drafts a month of posts in the client's voice; everyone sees the same calendar">✨ Draft a month with AI</button>
+      <button class="btn sm" id="calConnect" hidden style="width:100%;margin-bottom:6px" title="Enter the team passcode to use the shared calendar, AI drafting and Save to Drive">Connect to the shared calendar</button>
+      <div id="calDraft" hidden></div>
       <button class="btn sm" id="calMonthGen" style="width:100%;margin-bottom:6px" title="One graphic for every post in this month, with layouts and borders mixed">🗓 Generate the whole month</button>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend" id="calLegend"></div>
@@ -1717,9 +1732,13 @@ async function discoverMonths(){
   // this month and what's ahead of it; once a month has gone by its tab is done with
   const want = [];
   for (let i = 0; i <= 5; i++) { const d = new Date(now.getFullYear(), now.getMonth()+i, 1); want.push([d.getFullYear(), d.getMonth()]); }
-  const found = await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m)));
+  const found = cfg.sheetId ? await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m))) : [];
   CAL.stale = found.filter(f => f && f.stale);
-  return found.filter(f => f && !f.stale);
+  // a month kept in the generator takes the place of the sheet's tab for that month
+  const app = await storeMonths().catch(() => []);
+  const keys = new Set(app.map(m => m.key));
+  CAL.stale = CAL.stale.filter(s => !keys.has(monthKey(s.y, s.m)));
+  return found.filter(f => f && !f.stale && !keys.has(f.key)).concat(app).sort((a,b) => (a.y - b.y) || (a.m - b.m));
 }
 
 // ---------- the month grid ----------
@@ -1765,7 +1784,7 @@ function selectedPost(){
 let calDone = {};
 function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
 function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
-function doneKey(p){ return (calCfg() || {}).sheetId + '|' + p.iso; }
+function doneKey(p){ return ((calCfg() || {}).sheetId || STUDIO.slug) + '|' + p.iso; }
 function isDone(p){ return !!calDone[doneKey(p)]; }
 function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
 
@@ -1884,10 +1903,11 @@ function renderCalendar(){
   const sec = $('#calSec'); if (!sec) return;
   if (!calCfg()) { sec.hidden = true; return; }
   sec.hidden = false;
+  renderStoreButtons();
   const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
   if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
   if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
-  if (!CAL.months.length) { status.textContent = 'No month tabs found in the sheet. Type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (!CAL.months.length) { status.textContent = (STORE.ready && STORE.ai ? 'No calendar for this month yet \u2014 draft one with AI, or ' : 'No month tabs found in the sheet. ') + 'type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
 
   sel.innerHTML = '';
   for (const m of CAL.months) sel.append(h('option',{value:m.key}, m.label));
@@ -1899,7 +1919,8 @@ function renderCalendar(){
   const month = curMonth();
   const photoOnly = month.posts.filter(p => p.noHead).length;
   const blank = month.posts.filter(p => !p.hook && !p.noHead).length;
-  status.textContent = month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
+  status.textContent = month.source === 'app' ? calStatusText(month) + staleNote()
+    : month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
     + (photoOnly ? ' · ' + photoOnly + ' photo only (x)' : '')
     + (blank ? ' · ' + blank + ' with no hook text yet' : '') + staleNote();
 
@@ -1939,7 +1960,7 @@ function renderCalendar(){
 
   detail.innerHTML = '';
   const posts = viewPosts();
-  if (!posts.length) { detail.append(h('p',{class:'hint'}, 'Pick a day with a dot to load that post.')); return; }
+  if (!posts.length) { detail.append(h('p',{class:'hint'}, 'Pick a day with a dot to load that post.')); if (month.source === 'app') monthTools(detail, month); return; }
   // In a week view the posts sit side by side as compact cards — the rail is too narrow to
   // carry two captions at once, so the caption below follows whichever one is chosen.
   const shown = posts.find(p => p.iso === CAL.view.used) || posts[0];
@@ -1958,6 +1979,8 @@ function renderCalendar(){
   detail.append(wrap);
   if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
     title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
+  // a month kept in the generator is edited right here; a sheet month is read-only
+  if (month.source === 'app') { if (shown) calEditor(detail, shown, month); monthTools(detail, month); return; }
   if (shown && shown.post) {
     detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
       h('button',{class:'btn link',onclick:async()=>{
@@ -1977,12 +2000,17 @@ let calBusy = false, calLastSync = 0;
 function postSig(list){ return list.map(p => p.iso + '\u0001' + p.bucket + '\u0001' + p.hook).join('\u0002'); }
 async function refreshCalendar(reason){
   if (calBusy || !calCfg()) return;
+  // don't pull the rug out from under someone typing in the post editor, or a pending save
+  if (reason !== 'manual' && (storeTimer || document.activeElement?.closest?.('#calDetail, #calDraft'))) return;
   calBusy = true;
   const btn = $('#calSync'); if (btn) btn.disabled = true;
   const wasCur = CAL.cur, wasView = CAL.view && Object.assign({}, CAL.view);
   const before = new Map(CAL.months.map(m => [m.key, postSig(m.posts)]));
   try {
-    const months = await discoverMonths();
+    const fresh = await discoverMonths();
+    // keep the open copy of a generator month unless the shared copy is newer
+    const months = fresh.map(m => { const was = CAL.months.find(x => x.key === m.key && x.source === 'app');
+      return was && m.source === 'app' && was.rev >= m.rev ? was : m; });
     if (months.length) {
       const added = months.filter(m => !before.has(m.key)).map(m => m.label);
       const changed = months.filter(m => before.has(m.key) && before.get(m.key) !== postSig(m.posts)).map(m => m.label);
@@ -2015,6 +2043,7 @@ async function wireCalendar(){
   const cfg = calCfg();
   if (!cfg) { const sec = $('#calSec'); if (sec) sec.hidden = true; return; }
   loadCalDone();
+  $('#calOpen').hidden = !cfg.url;
   $('#calOpen').addEventListener('click', () => window.open(cfg.url, '_blank', 'noopener'));
   $('#calSync').addEventListener('click', () => refreshCalendar('manual'));
   $('#calMonth').addEventListener('change', e => { CAL.cur = e.target.value; CAL.view = { kind:'week', row:0 }; const g = curGrid(); const r = g.findIndex(x => x.posts.length); CAL.view.row = r < 0 ? 0 : r; renderCalendar(); });
@@ -2025,6 +2054,7 @@ async function wireCalendar(){
   $('#calPrev').addEventListener('click', () => step(-1));
   $('#calNext').addEventListener('click', () => step(1));
   CAL.state = 'loading'; renderCalendar();
+  await storeInit();
   try {
     CAL.months = await discoverMonths();
     CAL.state = CAL.months.length ? 'ready' : 'empty';
@@ -2264,7 +2294,7 @@ async function drivePost(body, ask = true){
     body: JSON.stringify(Object.assign({ passcode }, body)) });
   const j = await r.json();
   if (!j.ok && j.error === 'passcode') { try { localStorage.removeItem(DRIVE_PASS_KEY); } catch {} throw new Error('That passcode didn’t work — try again'); }
-  if (!j.ok) throw new Error(j.error || 'Drive said no');
+  if (!j.ok) { const e = new Error(j.error || 'Drive said no'); e.data = j.data; throw e; }
   return j;
 }
 function blobToBase64(blob){
@@ -2334,6 +2364,249 @@ $('#driveBtn').addEventListener('click', saveCurrentToDrive);
   for (let i = 0; i < 60 && !['ready','empty','offline'].includes(CAL.state); i++) await new Promise(r => setTimeout(r, 250));
   syncDoneFromDrive();
 })();
+
+// ---------- the generator's own calendar (shared) ----------
+// Months can live in the generator instead of the Google Sheet. Each one is a file in the
+// Drive folder, read and written through the backend (apps-script/), so everyone who opens the
+// studio sees the same posts. Claude drafts a month on request; every post stays editable
+// here. A month in the generator takes the place of the sheet's tab for that month.
+
+const STORE = { ready:false, ai:false, guide:false, status:'' };
+const DAY_FULL = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+const storeKey = (y, m) => y + '-' + String(m+1).padStart(2, '0');
+
+async function storeInit(){
+  STORE.ready = false;
+  if (!driveCfg() || !drivePass(false)) return false;
+  try {
+    const j = await drivePost({ action:'ping', client:STUDIO.name }, false);
+    STORE.ready = true; STORE.ai = !!j.ai; STORE.guide = !!j.guide;
+  } catch { STORE.ready = false; }
+  return STORE.ready;
+}
+
+function postFromStore(x){
+  const [y, mo, d] = x.iso.split('-').map(Number);
+  const date = new Date(y, mo-1, d);
+  return { id: x.id || ('p' + Math.random().toString(36).slice(2, 9)), date, iso: x.iso, week: null, day: DAY_FULL[date.getDay()],
+           bucket: x.bucket || '', hook: x.noHead ? '' : (x.hook || ''), noHead: !!x.noHead, post: x.post || '',
+           photoIdea: x.photoIdea || '', approved: !!x.approved };
+}
+function monthFromStore(data){
+  const [y, mo] = data.month.split('-').map(Number), m = mo - 1;
+  return { y, m, key: monthKey(y, m), label: MONTHS[m] + ' ' + y, tab: 'generator calendar', source:'app',
+           rev: data.rev || 0, approved: !!data.approved, posts: (data.posts || []).map(postFromStore).sort((a,b) => a.date - b.date) };
+}
+function storeFromMonth(month){
+  return { approved: !!month.approved, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
+           post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved })) };
+}
+
+// The generator's months from this one on.
+async function storeMonths(){
+  if (!STORE.ready) return [];
+  const now = new Date(), from = storeKey(now.getFullYear(), now.getMonth());
+  const j = await drivePost({ action:'cal.list', client:STUDIO.name }, false);
+  const keys = (j.months || []).map(x => x.month).filter(k => k >= from).sort();
+  const got = await Promise.all(keys.map(k => drivePost({ action:'cal.get', client:STUDIO.name, month:k }, false).catch(() => null)));
+  return got.filter(g => g && g.data).map(g => monthFromStore(g.data));
+}
+
+// ---------- saving ----------
+let storeTimer = null;
+function touchMonth(month){
+  month._grid = null;
+  month.posts.sort((a,b) => a.date - b.date);
+  STORE.status = 'Saving…'; renderCalendarStatusOnly();
+  clearTimeout(storeTimer);
+  storeTimer = setTimeout(() => saveMonth(month), 1200);
+}
+async function saveMonth(month){
+  storeTimer = null;
+  try {
+    const j = await drivePost({ action:'cal.save', client:STUDIO.name, month: storeKey(month.y, month.m), data: storeFromMonth(month), rev: month.rev }, false);
+    month.rev = j.rev; STORE.status = 'Saved ✓';
+  } catch (err) {
+    if (/conflict/i.test(err.message) && err.data) {
+      Object.assign(month, monthFromStore(err.data));
+      STORE.status = 'Someone else changed this month — showing their version';
+      toast('Someone else just edited ' + month.label + ' — reloaded their version. Make your change again.');
+      renderCalendar(); return;
+    }
+    STORE.status = 'Not saved — ' + err.message;
+  }
+  renderCalendarStatusOnly();
+}
+function renderCalendarStatusOnly(){ const m = curMonth(); if (m && m.source === 'app') $('#calStatus').textContent = calStatusText(m); }
+
+// ---------- the panel's status line for a generator month ----------
+function calStatusText(month){
+  const ok = month.posts.filter(p => p.approved).length;
+  return month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · in the generator'
+    + ' · ' + (month.approved ? 'month approved ✓' : ok + ' of ' + month.posts.length + ' approved')
+    + (STORE.status ? ' · ' + STORE.status : '');
+}
+
+// ---------- the editor (a generator month's post, in the panel) ----------
+function bucketLabels(){ return (STUDIO.buckets || []).map(b => b[1]); }
+function calEditor(detail, p, month){
+  const edit = (fn) => { fn(); touchMonth(month); };
+  const field = (label, node) => h('div',{class:'field ce-field'}, h('label',{}, label), node);
+  const sel = h('select',{onchange:e=>edit(()=>{ p.bucket = e.target.value; })},
+    ...bucketLabels().map(b => h('option',{value:b, selected: b.toLowerCase() === String(p.bucket).toLowerCase()}, b)));
+  if (p.bucket && !bucketLabels().some(b => b.toLowerCase() === p.bucket.toLowerCase())) sel.prepend(h('option',{value:p.bucket, selected:true}, p.bucket));
+  const hook = h('input',{type:'text', value:p.hook, disabled:p.noHead, placeholder:'Headline on the graphic',
+    oninput:e=>edit(()=>{ p.hook = e.target.value; if (selectedPost() === p && byId('headline')) { byId('headline').text = p.hook; renderQuickFields(); render(); } })});
+  const noHead = h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:p.noHead,
+    onchange:e=>edit(()=>{ p.noHead = e.target.checked; if (p.noHead) p.hook = ''; renderCalendar(); })}), ' No headline (photo only)');
+  const caption = h('textarea',{rows:7, oninput:e=>edit(()=>{ p.post = e.target.value; })}); caption.value = p.post;
+  const photo = h('input',{type:'text', value:p.photoIdea, placeholder:'e.g. a child working on math at a desk',
+    oninput:e=>edit(()=>{ p.photoIdea = e.target.value; })});
+  const date = h('input',{type:'date', value:p.iso, onchange:e=>{ const v = e.target.value; if (!v) return;
+    const [y, mo] = v.split('-').map(Number); if (y !== month.y || mo-1 !== month.m) { toast('Keep the date inside ' + month.label); e.target.value = p.iso; return; }
+    edit(()=>{ Object.assign(p, postFromStore(Object.assign({}, p, { iso:v }))); CAL.view = { kind:'day', iso:v }; }); renderCalendar(); }});
+  const approved = h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:p.approved,
+    onchange:e=>edit(()=>{ p.approved = e.target.checked; renderCalendar(); })}), ' Approved');
+  detail.append(h('div',{class:'ce'},
+    h('div',{class:'ce-row'}, field('Date', date), field('Bucket', sel)),
+    field('Hook text', hook), noHead,
+    field('Post text', caption),
+    field('Photo idea', photo),
+    h('div',{class:'ce-row ce-actions'}, approved,
+      STORE.ai ? h('button',{class:'btn sm',title:'Ask Claude to rewrite this post',onclick:()=>rewritePost(p, month)}, '↻ Rewrite with AI…') : null,
+      h('button',{class:'btn sm',title:'Copy the post text',onclick:async()=>{ try { await navigator.clipboard.writeText(p.post); toast('Post text copied'); } catch { toast('Couldn’t copy'); } }}, 'Copy'),
+      h('button',{class:'btn sm danger',title:'Remove this post from the month',onclick:()=>{ if (!confirm('Delete the ' + postLabel(p) + ' post?')) return;
+        month.posts = month.posts.filter(x => x !== p); CAL.view = { kind:'week', row:0 }; touchMonth(month); renderCalendar(); }}, 'Delete'))));
+}
+
+function monthTools(detail, month){
+  detail.append(h('div',{class:'ce-row ce-month'},
+    h('button',{class:'btn sm',title:'Add a post on another date',onclick:()=>addPost(month)}, '+ Add a post'),
+    h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
+    h('label',{class:'ce-check'}, h('input',{type:'checkbox', checked:month.approved, onchange:e=>{ month.approved = e.target.checked; touchMonth(month); renderCalendar(); }}), ' Month approved')));
+}
+
+function addPost(month){
+  const d = prompt('Date for the new post (day of ' + month.label + ', e.g. 12):');
+  const n = parseInt(d, 10); if (!n) return;
+  const date = new Date(month.y, month.m, n); if (date.getMonth() !== month.m) { toast('That day isn’t in ' + month.label); return; }
+  const p = postFromStore({ iso: isoDate(date), bucket: bucketLabels()[0] || '', hook:'', post:'' });
+  month.posts.push(p); CAL.view = { kind:'day', iso:p.iso }; touchMonth(month); renderCalendar();
+}
+
+function copyForSheet(month){
+  const q = s => '"' + String(s || '').replace(/"/g, '""') + '"';
+  const rows = month.posts.map(p => [(p.date.getMonth()+1) + '/' + p.date.getDate() + '/' + p.date.getFullYear(), p.bucket, p.noHead ? 'x' : p.hook, '', q(p.post)].join('\t'));
+  navigator.clipboard.writeText(rows.join('\n')).then(() => toast('Copied ' + rows.length + ' rows — click the first DATE cell in the sheet and paste'),
+    () => toast('Couldn’t copy'));
+}
+
+// ---------- drafting with Claude ----------
+async function pastExamples(beforeY, beforeM){
+  // the sheet's last few months show the voice and flow; approved generator months too
+  const cfg = calCfg(), out = [];
+  if (cfg && cfg.sheetId) {
+    const want = [];
+    for (let i = 1; i <= 4; i++) { const d = new Date(beforeY, beforeM - i, 1); want.push([d.getFullYear(), d.getMonth()]); }
+    const got = await Promise.all(want.map(([y, m]) => tryMonth(cfg, y, m).catch(() => null)));
+    got.forEach(m => { if (m && !m.stale) m.posts.forEach(p => { if (p.post) out.push({ bucket:p.bucket, hook:p.hook, post:p.post }); }); });
+  }
+  CAL.months.filter(m => m.source === 'app' && (m.y < beforeY || (m.y === beforeY && m.m < beforeM)))
+    .forEach(m => m.posts.forEach(p => { if (p.approved && p.post) out.push({ bucket:p.bucket, hook:p.hook, post:p.post }); }));
+  return out.slice(-36);
+}
+
+function openDraftForm(){
+  const box = $('#calDraft'); box.innerHTML = ''; box.hidden = false;
+  const now = new Date(), choices = [];
+  for (let i = 0; i <= 4; i++) { const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    if (!CAL.months.some(m => m.source === 'app' && m.y === d.getFullYear() && m.m === d.getMonth())) choices.push(d); }
+  if (!choices.length) { box.append(h('p',{class:'hint'}, 'The next few months already have calendars in the generator.')); return; }
+  const def = choices.find(d => d > now) || choices[0];
+  const month = h('select',{}, ...choices.map(d => h('option',{value:d.getFullYear() + '-' + d.getMonth(), selected:d === def}, MONTHS[d.getMonth()] + ' ' + d.getFullYear())));
+  const cfgDays = (calCfg() && calCfg().postDays) || ['Mon','Wed'];
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(dn => h('label',{class:'ce-check'}, h('input',{type:'checkbox', value:dn, checked:cfgDays.includes(dn)}), ' ' + dn));
+  const notes = h('textarea',{rows:3, placeholder:'Events, deadlines, holidays, things to emphasise or avoid… (optional)'});
+  const go = h('button',{class:'btn gen sm'}, '✨ Draft it');
+  const st = h('p',{class:'hint'}, STORE.guide ? 'Uses the messaging guide in the Drive folder and recent posts for the voice.' : 'No messaging guide in the Drive folder yet — it will go by recent posts for the voice.');
+  go.onclick = async () => {
+    const [y, m] = month.value.split('-').map(Number);
+    const pick = days.map(l => l.querySelector('input')).filter(i => i.checked).map(i => i.value);
+    if (!pick.length) { toast('Pick at least one posting day'); return; }
+    go.disabled = true;
+    try { await draftMonth(y, m, pick, notes.value.trim(), msg => { st.textContent = msg; }); box.hidden = true; }
+    catch (err) { st.textContent = 'Couldn’t draft: ' + err.message; }
+    finally { go.disabled = false; }
+  };
+  box.append(h('div',{class:'ce'},
+    h('div',{class:'ce-row'}, h('div',{class:'field ce-field'}, h('label',{}, 'Month'), month)),
+    h('div',{class:'field ce-field'}, h('label',{}, 'Post on'), h('div',{class:'ce-days'}, ...days)),
+    h('div',{class:'field ce-field'}, h('label',{}, 'This month'), notes),
+    h('div',{class:'ce-row ce-actions'}, go, h('button',{class:'btn link',onclick:()=>{ box.hidden = true; }}, 'Cancel')), st));
+}
+
+async function draftMonth(y, m, pickDays, notes, progress){
+  const dates = [];
+  for (let d = new Date(y, m, 1); d.getMonth() === m; d.setDate(d.getDate()+1)) {
+    if (pickDays.includes(DAY_ABBR[d.getDay()])) dates.push(new Date(d));
+  }
+  progress('Gathering recent posts for the voice…');
+  const examples = await pastExamples(y, m);
+  const base = { action:'ai.draft', client:STUDIO.name, clientFull:(window.BI_CLIENTS.find(c => c.slug === STUDIO.slug) || {}).full || STUDIO.name,
+                 month: MONTHS[m] + ' ' + y, buckets: bucketLabels(), examples, notes };
+  // a week at a time keeps each request short, and lets later weeks see what's already written
+  const weeks = [];
+  dates.forEach(d => { const k = Math.floor((d.getDate() + ((new Date(y, m, 1).getDay()+6) % 7) - 1) / 7); (weeks[k] = weeks[k] || []).push(d); });
+  const posts = [];
+  const live = weeks.filter(Boolean);
+  for (let i = 0; i < live.length; i++) {
+    progress('Writing week ' + (i+1) + ' of ' + live.length + '…');
+    const j = await drivePost(Object.assign({}, base, {
+      dates: live[i].map(d => ({ iso: isoDate(d), day: DAY_FULL[d.getDay()] })),
+      already: posts.map(p => ({ iso:p.iso, bucket:p.bucket, hook:p.hook, post:p.post })) }), false);
+    (j.posts || []).forEach(x => posts.push(x));
+  }
+  const month = monthFromStore({ month: storeKey(y, m), rev: 0, posts });
+  CAL.months = CAL.months.filter(x => x.key !== month.key).concat([month]).sort((a,b) => (a.y - b.y) || (a.m - b.m));
+  CAL.cur = month.key; CAL.view = { kind:'week', row:0 };
+  progress('Saving…');
+  await saveMonth(month);
+  renderCalendar();
+  toast(month.label + ' drafted — ' + month.posts.length + ' posts. Review and edit them in the calendar.');
+}
+
+async function rewritePost(p, month){
+  const how = prompt('How should Claude rewrite it? (e.g. shorter, warmer, mention the open house on the 14th)', 'Make it tighter and more specific');
+  if (how == null) return;
+  toast('Rewriting…');
+  try {
+    const examples = await pastExamples(month.y, month.m);
+    const j = await drivePost({ action:'ai.rewrite', client:STUDIO.name, clientFull:(window.BI_CLIENTS.find(c => c.slug === STUDIO.slug) || {}).full || STUDIO.name,
+      buckets: bucketLabels(), examples, instruction: how,
+      post: { iso:p.iso, bucket:p.bucket, hook:p.hook, post:p.post, photoIdea:p.photoIdea } }, false);
+    const x = (j.posts || [])[0]; if (!x) throw new Error('nothing came back');
+    Object.assign(p, { bucket:x.bucket, hook: p.noHead ? '' : x.hook, post:x.post, photoIdea:x.photoIdea, approved:false });
+    touchMonth(month); renderCalendar(); toast('Rewritten — have a look');
+  } catch (err) { toast('Couldn’t rewrite: ' + err.message); }
+}
+
+// ---------- buttons in the calendar panel ----------
+function renderStoreButtons(){
+  const cfg = calCfg();
+  const draft = $('#calDraftBtn'), connect = $('#calConnect');
+  if (!draft || !connect) return;
+  connect.hidden = !(cfg && cfg.driveEndpoint && !STORE.ready);
+  draft.hidden = !(STORE.ready && STORE.ai);
+}
+window.addEventListener('load', () => {
+  $('#calDraftBtn').addEventListener('click', openDraftForm);
+  $('#calConnect').addEventListener('click', async () => {
+    if (!drivePass(true)) return;
+    if (await storeInit()) { toast('Connected'); refreshCalendar('manual'); syncDoneFromDrive(); }
+    else toast('That passcode didn’t work');
+    renderStoreButtons();
+  });
+});
 
 // ---------- Clear (shared) ----------
 // Everything off the page, back to the studio's blank starting point (STUDIO.blank). The
@@ -2439,7 +2712,7 @@ async function fontsReady(){
 })();
 })();
 </script>
-<script src="../clients.js?v=202610131413"></script>
+<script src="../clients.js?v=202610131510"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {

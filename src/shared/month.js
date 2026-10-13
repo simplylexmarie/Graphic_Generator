@@ -124,7 +124,7 @@ async function drivePost(body, ask = true){
     body: JSON.stringify(Object.assign({ passcode }, body)) });
   const j = await r.json();
   if (!j.ok && j.error === 'passcode') { try { localStorage.removeItem(DRIVE_PASS_KEY); } catch {} throw new Error('That passcode didn’t work — try again'); }
-  if (!j.ok) throw new Error(j.error || 'Drive said no');
+  if (!j.ok) { const e = new Error(j.error || 'Drive said no'); e.data = j.data; throw e; }
   return j;
 }
 function blobToBase64(blob){

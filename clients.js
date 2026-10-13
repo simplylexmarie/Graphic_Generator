@@ -37,6 +37,8 @@ window.BI_CLIENTS = [
       headerRow: 10,
       firstPostRow: 12,
       cols: { week:'B', day:'C', date:'J', bucket:'K', hook:'L', image:'M', post:'N' },
+      // the days AI drafting posts on by default (it can be changed when drafting)
+      postDays: ['Mon', 'Wed'],
       // phase 2: an Apps Script web app that files the PNG in Drive and writes column M
       driveEndpoint: null
     }

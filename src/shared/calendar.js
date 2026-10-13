@@ -125,9 +125,13 @@ async function discoverMonths(){
   // this month and what's ahead of it; once a month has gone by its tab is done with
   const want = [];
   for (let i = 0; i <= 5; i++) { const d = new Date(now.getFullYear(), now.getMonth()+i, 1); want.push([d.getFullYear(), d.getMonth()]); }
-  const found = await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m)));
+  const found = cfg.sheetId ? await Promise.all(want.map(([y,m]) => tryMonth(cfg, y, m))) : [];
   CAL.stale = found.filter(f => f && f.stale);
-  return found.filter(f => f && !f.stale);
+  // a month kept in the generator takes the place of the sheet's tab for that month
+  const app = await storeMonths().catch(() => []);
+  const keys = new Set(app.map(m => m.key));
+  CAL.stale = CAL.stale.filter(s => !keys.has(monthKey(s.y, s.m)));
+  return found.filter(f => f && !f.stale && !keys.has(f.key)).concat(app).sort((a,b) => (a.y - b.y) || (a.m - b.m));
 }
 
 // ---------- the month grid ----------
@@ -173,7 +177,7 @@ function selectedPost(){
 let calDone = {};
 function loadCalDone(){ try { calDone = JSON.parse(localStorage.getItem(LS.calendar || STUDIO.slug + '-calendar-v1') || '{}') || {}; } catch { calDone = {}; } }
 function saveCalDone(){ try { localStorage.setItem(LS.calendar || STUDIO.slug + '-calendar-v1', JSON.stringify(calDone)); } catch {} }
-function doneKey(p){ return (calCfg() || {}).sheetId + '|' + p.iso; }
+function doneKey(p){ return ((calCfg() || {}).sheetId || STUDIO.slug) + '|' + p.iso; }
 function isDone(p){ return !!calDone[doneKey(p)]; }
 function markPostDone(p){ if (!p) return; calDone[doneKey(p)] = Date.now(); saveCalDone(); renderCalendar(); }
 
@@ -292,10 +296,11 @@ function renderCalendar(){
   const sec = $('#calSec'); if (!sec) return;
   if (!calCfg()) { sec.hidden = true; return; }
   sec.hidden = false;
+  renderStoreButtons();
   const status = $('#calStatus'), grid = $('#calGrid'), detail = $('#calDetail'), sel = $('#calMonth');
   if (CAL.state === 'loading') { status.textContent = 'Reading the calendar…'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
   if (CAL.state === 'offline') { status.textContent = 'Couldn’t reach the calendar. You can still type a headline yourself.'; grid.innerHTML = ''; detail.innerHTML = ''; return; }
-  if (!CAL.months.length) { status.textContent = 'No month tabs found in the sheet. Type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
+  if (!CAL.months.length) { status.textContent = (STORE.ready && STORE.ai ? 'No calendar for this month yet \u2014 draft one with AI, or ' : 'No month tabs found in the sheet. ') + 'type a headline yourself.' + staleNote(); grid.innerHTML = ''; detail.innerHTML = ''; return; }
 
   sel.innerHTML = '';
   for (const m of CAL.months) sel.append(h('option',{value:m.key}, m.label));
@@ -307,7 +312,8 @@ function renderCalendar(){
   const month = curMonth();
   const photoOnly = month.posts.filter(p => p.noHead).length;
   const blank = month.posts.filter(p => !p.hook && !p.noHead).length;
-  status.textContent = month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
+  status.textContent = month.source === 'app' ? calStatusText(month) + staleNote()
+    : month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · tab “' + month.tab + '”'
     + (photoOnly ? ' · ' + photoOnly + ' photo only (x)' : '')
     + (blank ? ' · ' + blank + ' with no hook text yet' : '') + staleNote();
 
@@ -347,7 +353,7 @@ function renderCalendar(){
 
   detail.innerHTML = '';
   const posts = viewPosts();
-  if (!posts.length) { detail.append(h('p',{class:'hint'}, 'Pick a day with a dot to load that post.')); return; }
+  if (!posts.length) { detail.append(h('p',{class:'hint'}, 'Pick a day with a dot to load that post.')); if (month.source === 'app') monthTools(detail, month); return; }
   // In a week view the posts sit side by side as compact cards — the rail is too narrow to
   // carry two captions at once, so the caption below follows whichever one is chosen.
   const shown = posts.find(p => p.iso === CAL.view.used) || posts[0];
@@ -366,6 +372,8 @@ function renderCalendar(){
   detail.append(wrap);
   if (STUDIO.specsFor) detail.append(h('button',{class:'btn gen sm cd-gen',onclick:generateFromPost,
     title:'Three graphics matched to this post\u2019s caption and bucket'}, '\u{1F4C5} Generate options for this post'));
+  // a month kept in the generator is edited right here; a sheet month is read-only
+  if (month.source === 'app') { if (shown) calEditor(detail, shown, month); monthTools(detail, month); return; }
   if (shown && shown.post) {
     detail.append(h('div',{class:'subh'}, 'Post text \u00b7 ' + DAY_ABBR[shown.date.getDay()] + ' ' + (shown.date.getMonth()+1) + '/' + shown.date.getDate(),
       h('button',{class:'btn link',onclick:async()=>{
@@ -385,12 +393,17 @@ let calBusy = false, calLastSync = 0;
 function postSig(list){ return list.map(p => p.iso + '\u0001' + p.bucket + '\u0001' + p.hook).join('\u0002'); }
 async function refreshCalendar(reason){
   if (calBusy || !calCfg()) return;
+  // don't pull the rug out from under someone typing in the post editor, or a pending save
+  if (reason !== 'manual' && (storeTimer || document.activeElement?.closest?.('#calDetail, #calDraft'))) return;
   calBusy = true;
   const btn = $('#calSync'); if (btn) btn.disabled = true;
   const wasCur = CAL.cur, wasView = CAL.view && Object.assign({}, CAL.view);
   const before = new Map(CAL.months.map(m => [m.key, postSig(m.posts)]));
   try {
-    const months = await discoverMonths();
+    const fresh = await discoverMonths();
+    // keep the open copy of a generator month unless the shared copy is newer
+    const months = fresh.map(m => { const was = CAL.months.find(x => x.key === m.key && x.source === 'app');
+      return was && m.source === 'app' && was.rev >= m.rev ? was : m; });
     if (months.length) {
       const added = months.filter(m => !before.has(m.key)).map(m => m.label);
       const changed = months.filter(m => before.has(m.key) && before.get(m.key) !== postSig(m.posts)).map(m => m.label);
@@ -423,6 +436,7 @@ async function wireCalendar(){
   const cfg = calCfg();
   if (!cfg) { const sec = $('#calSec'); if (sec) sec.hidden = true; return; }
   loadCalDone();
+  $('#calOpen').hidden = !cfg.url;
   $('#calOpen').addEventListener('click', () => window.open(cfg.url, '_blank', 'noopener'));
   $('#calSync').addEventListener('click', () => refreshCalendar('manual'));
   $('#calMonth').addEventListener('change', e => { CAL.cur = e.target.value; CAL.view = { kind:'week', row:0 }; const g = curGrid(); const r = g.findIndex(x => x.posts.length); CAL.view.row = r < 0 ? 0 : r; renderCalendar(); });
@@ -433,6 +447,7 @@ async function wireCalendar(){
   $('#calPrev').addEventListener('click', () => step(-1));
   $('#calNext').addEventListener('click', () => step(1));
   CAL.state = 'loading'; renderCalendar();
+  await storeInit();
   try {
     CAL.months = await discoverMonths();
     CAL.state = CAL.months.length ? 'ready' : 'empty';

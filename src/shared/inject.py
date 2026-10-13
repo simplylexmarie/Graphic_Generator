@@ -17,7 +17,7 @@ has one.
 import pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 SHARED = ROOT / 'src/shared'
-MODULES = ['calendar.js', 'options.js', 'month.js', 'clear.js', 'zoom.js']
+MODULES = ['calendar.js', 'options.js', 'month.js', 'calstore.js', 'clear.js', 'zoom.js']
 
 CAL_SECTION = """    <div class="sec" id="calSec" hidden>
       <h2>Calendar <button class="btn link" id="calSync" title="Re-read the sheet now">Refresh</button> <button class="btn link" id="calOpen" title="Open the schedule in Google Sheets">Open calendar</button></h2>
@@ -27,6 +27,9 @@ CAL_SECTION = """    <div class="sec" id="calSec" hidden>
         <button class="btn sm" id="calNext" title="Next month with a tab" aria-label="Next month">›</button>
       </div>
       <p class="hint" id="calStatus"></p>
+      <button class="btn sm gen" id="calDraftBtn" hidden style="width:100%;margin-bottom:6px" title="Claude drafts a month of posts in the client's voice; everyone sees the same calendar">\u2728 Draft a month with AI</button>
+      <button class="btn sm" id="calConnect" hidden style="width:100%;margin-bottom:6px" title="Enter the team passcode to use the shared calendar, AI drafting and Save to Drive">Connect to the shared calendar</button>
+      <div id="calDraft" hidden></div>
       <button class="btn sm" id="calMonthGen" style="width:100%;margin-bottom:6px" title="One graphic for every post in this month, with layouts and borders mixed">\U0001F5D3 Generate the whole month</button>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend" id="calLegend"></div>

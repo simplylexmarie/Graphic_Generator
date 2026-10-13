@@ -35,3 +35,15 @@
 .opt img{width:100%;height:auto;max-height:180px;object-fit:contain;display:block;border-radius:4px}
 .opt span{font-size:11px;opacity:.8}
 .cal-post{white-space:pre-wrap;font-size:11px;line-height:1.45;max-height:132px;overflow:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
+.ce{display:flex;flex-direction:column;gap:6px;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.ce-row{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.ce-row>.ce-field{flex:1;min-width:110px}
+.ce-field{margin:0}
+.ce-field label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.7;display:block;margin-bottom:3px}
+.ce-field input,.ce-field select,.ce-field textarea{width:100%;font:inherit;font-size:12px;box-sizing:border-box}
+.ce-field textarea{line-height:1.45;resize:vertical}
+.ce-check{font-size:11px;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.ce-days{display:flex;flex-wrap:wrap;gap:4px 10px}
+.ce-actions{align-items:center}
+.ce-month{margin-top:8px;align-items:center}
+.btn.danger{color:#e66}
