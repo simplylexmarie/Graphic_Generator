@@ -4,3 +4,6 @@ preview/
 mcmillan/Canva Photos/
 springforth/Canva Photos/
 *.b64
+
+# client documents (messaging guides, voice notes): private, never pushed
+client-docs/
