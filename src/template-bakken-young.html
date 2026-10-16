@@ -852,7 +852,7 @@ function renderQuickFields(){
 function h(tag, attrs, ...kids){
   const n = document.createElement(tag);
   for (const [k,v] of Object.entries(attrs||{})) { if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else if (k in n && k !== 'style') n[k] = v; else n.setAttribute(k, v); }
-  for (const c of kids) n.append(c);
+  for (const c of kids) if (c != null && c !== false) n.append(c);
   return n;
 }
 function removeSel(){

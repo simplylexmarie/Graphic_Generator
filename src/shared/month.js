@@ -133,7 +133,7 @@ async function drivePost(body, ask = true){
 function updateDriveLabel(){
   const b = $('#driveBtn'); if (!b || b.disabled) return;
   const p = selectedPost(), m = p && monthOf(p);
-  b.textContent = '\u2601 ' + (p && m && m.source === 'app' ? 'Save to ' + postLabel(p) : 'Save to Drive');
+  b.textContent = p && m && m.source === 'app' ? 'Save to ' + postLabel(p) : STORE.app ? 'Save to a day' : 'Save to Drive';
 }
 function blobToBase64(blob){
   return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(blob); });

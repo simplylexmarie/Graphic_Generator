@@ -53,6 +53,10 @@ h1{font-family:var(--display);font-size:clamp(26px,4vw,38px);line-height:1.1;mar
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--pend)}
 .dot.approved{background:var(--ok)} .dot.changes{background:var(--warn)} .dot.declined{background:var(--no)} .dot.edited{background:var(--accent)}
+.all{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:4px}
+.all .go{padding:9px 16px}
+.all .done{font-size:13px;font-weight:700;color:var(--ok)}
+.all small{font-size:12px;color:var(--muted)}
 
 /* toolbar */
 .tools{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border-bottom:1px solid var(--line)}
@@ -169,6 +173,7 @@ textarea{width:100%;min-height:76px;resize:vertical;border:1px solid var(--line)
     <div class="progress" aria-live="polite">
       <div class="bar" id="bar" role="img" aria-label="Review progress"></div>
       <div class="legend" id="legend"></div>
+      <div class="all" id="all" hidden></div>
     </div>
   </header>
   <div class="tools" id="tools" hidden>
@@ -238,7 +243,8 @@ function render(){
   $('#bar').replaceChildren(...['approved','changes','edited','declined'].map(s => el('i', { class:s, style:'width:' + (100*n[s]/total) + '%' })));
   $('#bar').setAttribute('aria-label', n.approved + ' approved, ' + n.changes + ' with changes, ' + n.declined + ' declined, ' + n.pending + ' to review');
   $('#legend').replaceChildren(...['approved','changes','edited','declined','pending'].filter(s => s !== 'edited' || n.edited).map(s =>
-    el('span', {}, el('span', { class:'dot ' + s }), n[s] + ' ' + STATUS[s].toLowerCase())));
+    el('span', {}, el('span', { class:'dot ' + s }), n[s] + ' ' + (s === 'changes' && n[s] === 1 ? 'change requested' : STATUS[s].toLowerCase()))));
+  approveAllBox(n);
   // toolbar
   $('#vCal').setAttribute('aria-pressed', String(VIEW === 'cal')); $('#vList').setAttribute('aria-pressed', String(VIEW === 'list'));
   $('#filters').replaceChildren(...FILTERS.filter(([k]) => k !== 'edited' || n.edited).map(([k, label]) => el('button', { 'aria-pressed':String(FILTER === k), onclick:() => { FILTER = k; render(); } },
@@ -357,9 +363,43 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' && order[at - 1]) openPost(DATA.posts.indexOf(order[at - 1]));
 });
 
+// ---------- approve the whole month at once ----------
+function approveAllBox(n){
+  const box = $('#all'); box.hidden = false;
+  const done = DATA.clientApproved;
+  const btn = n.pending ? el('button', { class:'go ok', onclick:approveAll },
+    n.pending === DATA.posts.length ? 'Approve the whole month' : 'Approve the other ' + n.pending + ' post' + (n.pending === 1 ? '' : 's')) : null;
+  box.replaceChildren(...[
+    btn,
+    done && !n.pending ? el('span', { class:'done' }, (n.changes || n.declined ? '✓ The rest of the month approved' : '✓ Month approved') + (done.name ? ' by ' + done.name : '') + ' · ' + when(done.at)) : null,
+    btn && (n.changes || n.declined) ? el('small', {}, 'Posts you asked to change or declined keep your notes.') : null].filter(Boolean));
+}
+async function approveAll(){
+  if (!needName()) return;
+  const n = DATA.posts.filter(p => statusOf(p) === 'pending').length;
+  if (!confirm('Approve ' + (n === DATA.posts.length ? 'all ' + n + ' posts for ' + DATA.label : 'the ' + n + ' post' + (n === 1 ? '' : 's') + ' you haven’t answered yet') + '?')) return;
+  try {
+    const r = await fetch('/api/review', { method:'POST', headers:{ 'content-type':'application/json' },
+      body: JSON.stringify({ t:T, postId:'*', decision:'approved', name:$('#name').value.trim() }) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'Couldn’t save that');
+    const name = $('#name').value.trim();
+    DATA.posts.forEach(p => { if (j.approved.includes(p.id)) {
+      p.client = { decision:'approved', note:'', name, at:j.at };
+      p.thread = (p.thread || []).concat([{ decision:'approved', note:'Approved with the whole month', name, at:j.at }]); } });
+    DATA.clientApproved = { name, at:j.at };
+    render();
+  } catch (err) { alert(err.message); }
+}
+function needName(){
+  const name = $('#name');
+  if (name.value.trim()) return true;
+  name.classList.add('need'); name.focus(); alert('Please add your name under “Reviewing as” first, so the team knows who answered.'); return false;
+}
+
 async function respond(p, decision, note){
   const name = $('#name');
-  if (!name.value.trim()) { name.classList.add('need'); name.focus(); alert('Please add your name under “Reviewing as” first, so the team knows who answered.'); return; }
+  if (!needName()) return;
   if ((decision === 'changes' || decision === 'comment') && !note) { alert('Please write your feedback first.'); return; }
   try {
     const r = await fetch('/api/review', { method:'POST', headers:{ 'content-type':'application/json' },

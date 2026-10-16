@@ -84,6 +84,7 @@ const ACTIONS = {
     if (cur) for (const p of data.posts || []) { const was = (cur.posts || []).find(x => x.id === p.id); if (!was) continue;
       if (was.client && !p.client) p.client = was.client;
       if ((was.clientComments || []).length > (p.clientComments || []).length) p.clientComments = was.clientComments; }
+    if (cur && cur.clientApproved && !data.clientApproved) data.clientApproved = cur.clientApproved;
     const res = await env.DB.prepare(
       `INSERT INTO months (client, month, data, rev, updated_at) VALUES (?, ?, ?, ?, ?)
        ON CONFLICT (client, month) DO UPDATE SET data = excluded.data, rev = excluded.rev, updated_at = excluded.updated_at
@@ -273,7 +274,7 @@ async function reviewGet(env, t) {
   const thread = id => rows.filter(x => x.post_id === id && (x.note || x.decision !== 'comment'))
     .map(x => ({ decision: x.decision, note: x.note, name: x.name, at: x.created_at }));
   const full = (CLIENT_NAMES[r.client] || r.client);
-  return { ok: true, client: r.client, clientFull: full, slug: CLIENT_SLUGS[r.client] || null, month: r.month, label,
+  return { ok: true, client: r.client, clientFull: full, slug: CLIENT_SLUGS[r.client] || null, month: r.month, label, clientApproved: data.clientApproved || null,
     posts: (data.posts || []).slice().sort((a, b2) => a.iso < b2.iso ? -1 : 1).map(p => ({
       id: p.id, iso: p.iso, bucket: p.bucket, hook: p.noHead ? '' : p.hook, post: p.post,
       graphic: p.graphic && p.graphic.id ? '/api/review/file?t=' + encodeURIComponent(t) + '&k=' + encodeURIComponent(p.graphic.id) : null,
@@ -295,6 +296,7 @@ async function reviewRespond(env, b) {
   if (!['approved', 'changes', 'declined', 'comment'].includes(b.decision)) return { ok: false, error: 'decision' };
   if ((b.decision === 'changes' || b.decision === 'comment') && !String(b.note || '').trim()) return { ok: false, error: 'Please write your feedback first' };
   const at = now(), note = String(b.note || '').slice(0, 4000), name = String(b.name || '').slice(0, 120);
+  if (b.postId === '*') return reviewApproveAll(env, r, b.t, name, at);
   await env.DB.prepare('INSERT INTO responses (token, post_id, decision, note, name, created_at) VALUES (?, ?, ?, ?, ?, ?)')
     .bind(b.t, b.postId, b.decision, note, name, at).run();
   // the answer also goes on the post itself, so the team sees it in the calendar
@@ -308,6 +310,29 @@ async function reviewRespond(env, b) {
     const res = await env.DB.prepare('UPDATE months SET data = ?, rev = ?, updated_at = ? WHERE client = ? AND month = ? AND rev = ?')
       .bind(JSON.stringify(store), rev, at, r.client, r.month, data.rev).run();
     if (res.meta.changes) return { ok: true, client: post.client || null, entry: { decision: b.decision, note, name, at } };
+  }
+  return { ok: false, error: 'Please try again' };
+}
+
+// "Approve the whole month": every post the client hasn't answered yet is approved. Posts they
+// asked to change or declined keep that answer, so one click can't undo their feedback.
+async function reviewApproveAll(env, r, t, name, at) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const data = await monthData(env, r.client, r.month);
+    if (!data) return { ok: false, error: 'This month isn’t available' };
+    const open = (data.posts || []).filter(p => !p.client || p.client.decision === 'edited');
+    open.forEach(p => {
+      p.client = { decision: 'approved', note: '', name, at };
+      p.clientComments = (p.clientComments || []).concat([{ decision: 'approved', note: 'Approved with the whole month', name, at }]).slice(-30);
+    });
+    data.clientApproved = { name, at };
+    const rev = data.rev + 1, store = Object.assign({}, data); delete store.rev; delete store.month; delete store.updatedAt;
+    const res = await env.DB.prepare('UPDATE months SET data = ?, rev = ?, updated_at = ? WHERE client = ? AND month = ? AND rev = ?')
+      .bind(JSON.stringify(store), rev, at, r.client, r.month, data.rev).run();
+    if (!res.meta.changes) continue;
+    if (open.length) await env.DB.batch(open.map(p => env.DB.prepare('INSERT INTO responses (token, post_id, decision, note, name, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(t, p.id, 'approved', 'Approved with the whole month', name, at)));
+    return { ok: true, approved: open.map(p => p.id), kept: (data.posts || []).length - open.length, at };
   }
   return { ok: false, error: 'Please try again' };
 }

@@ -24,9 +24,12 @@ cpSync(join(app, 'static'), out, { recursive: true });
 // Every client gets the app's calendar, AI drafting, saving and review links.
 writeFileSync(join(out, 'clients.js'), readFileSync(join(out, 'clients.js'), 'utf8') + `
 // App build: every client's calendar, AI drafting, graphics and review links go through the
-// app's own server. A Google Sheet (sheetId), where a client has one, still supplies past posts.
+// app's own server, with no Google Sheet. Past months live in the app too, and AI drafting
+// learns the client's voice from them.
 for (const c of window.BI_CLIENTS) {
-  c.calendar = Object.assign({ postDays: ['Mon', 'Wed'] }, c.calendar || {}, { driveEndpoint: '/api' });
+  const cal = Object.assign({ postDays: ['Mon', 'Wed'] }, c.calendar || {}, { driveEndpoint: '/api' });
+  delete cal.sheetId; delete cal.url;
+  c.calendar = cal;
 }
 `);
 console.log('app/public built');

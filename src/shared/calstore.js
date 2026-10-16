@@ -29,18 +29,19 @@ function postFromStore(x){
 function monthFromStore(data){
   const [y, mo] = data.month.split('-').map(Number), m = mo - 1;
   return { y, m, key: monthKey(y, m), label: MONTHS[m] + ' ' + y, tab: 'generator calendar', source:'app',
-           rev: data.rev || 0, approved: !!data.approved, posts: (data.posts || []).map(postFromStore).sort((a,b) => a.date - b.date) };
+           rev: data.rev || 0, approved: !!data.approved, clientApproved: data.clientApproved || null, posts: (data.posts || []).map(postFromStore).sort((a,b) => a.date - b.date) };
 }
 function storeFromMonth(month){
-  return { approved: !!month.approved, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
+  return { approved: !!month.approved, clientApproved: month.clientApproved || null, posts: month.posts.map(p => ({ id:p.id, iso:p.iso, bucket:p.bucket, hook:p.hook, noHead:!!p.noHead,
            post:p.post, photoIdea:p.photoIdea || '', approved:!!p.approved, graphic:p.graphic || null, design:p.design || null,
            client:p.client || null, clientComments:p.clientComments || [] })) };
 }
 
-// The generator's months from this one on.
+// The generator's months: the last six and everything ahead.
 async function storeMonths(){
   if (!STORE.ready) return [];
-  const now = new Date(), from = storeKey(now.getFullYear(), now.getMonth());
+  // the past six months too: they're the history to look back on, and AI drafting learns the voice from them
+  const now = new Date(), past = new Date(now.getFullYear(), now.getMonth() - 6, 1), from = storeKey(past.getFullYear(), past.getMonth());
   const j = await drivePost({ action:'cal.list', client:STUDIO.name }, false);
   const keys = (j.months || []).map(x => x.month).filter(k => k >= from).sort();
   const got = await Promise.all(keys.map(k => drivePost({ action:'cal.get', client:STUDIO.name, month:k }, false).catch(() => null)));
@@ -127,7 +128,8 @@ function calStatusText(month){
   const cNo = month.posts.filter(p => p.client && p.client.decision === 'declined').length;
   return month.posts.length + ' post' + (month.posts.length === 1 ? '' : 's') + ' · in the generator'
     + ' · ' + (month.approved ? 'month approved ✓' : ok + ' of ' + month.posts.length + ' approved')
-    + (cOk || cCh || cNo ? ' · client: ' + cOk + ' approved' + (cCh ? ', ' + cCh + ' with changes' : '') + (cNo ? ', ' + cNo + ' declined' : '') : '')
+    + (month.clientApproved && !cCh && !cNo ? ' · client approved the month'
+      : (cOk || cCh || cNo) ? ' · client: ' + cOk + ' approved' + (cCh ? ', ' + cCh + ' with changes' : '') + (cNo ? ', ' + cNo + ' declined' : '') : '')
     + (STORE.status ? ' · ' + STORE.status : '');
 }
 
@@ -182,7 +184,7 @@ function calEditor(detail, p, month){
 function monthTools(detail, month){
   detail.append(h('div',{class:'ce-row ce-month'},
     h('button',{class:'btn sm',title:'Add a post on another date',onclick:()=>addPost(month)}, '+ Add a post'),
-    h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
+    STORE.app ? null : h('button',{class:'btn sm',title:'Copy the month as rows to paste into the Google Sheet (at the DATE column)',onclick:()=>copyForSheet(month)}, 'Copy for Google Sheet'),
     STORE.app
       ? h('button',{class:'btn sm primary',title:'A private link where the client sees each post with its graphic and approves it or asks for changes',onclick:()=>reviewLink(month)}, 'Send for client review')
       : h('button',{class:'btn sm primary',title:'A Google Sheet for the client: date, headline, post text and graphic side by side, open for comments',onclick:()=>reportSheet(month)}, 'Client report (Sheet)'),
