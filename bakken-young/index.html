@@ -2659,11 +2659,11 @@ function storeFromMonth(month){
            client:p.client || null, clientComments:p.clientComments || [] })) };
 }
 
-// The generator's months: the last six and everything ahead.
+// The generator's months from this one on.
 async function storeMonths(){
   if (!STORE.ready) return [];
-  // the past six months too: they're the history to look back on, and AI drafting learns the voice from them
-  const now = new Date(), past = new Date(now.getFullYear(), now.getMonth() - 6, 1), from = storeKey(past.getFullYear(), past.getMonth());
+  // the calendar shows this month and later; past months stay on the server as AI drafting's reference
+  const now = new Date(), from = storeKey(now.getFullYear(), now.getMonth());
   const j = await drivePost({ action:'cal.list', client:STUDIO.name }, false);
   const keys = (j.months || []).map(x => x.month).filter(k => k >= from).sort();
   const got = await Promise.all(keys.map(k => drivePost({ action:'cal.get', client:STUDIO.name, month:k }, false).catch(() => null)));
@@ -2839,8 +2839,14 @@ async function pastExamples(beforeY, beforeM){
     const got = await Promise.all(want.map(([y, m]) => tryMonth(cfg, y, m).catch(() => null)));
     got.forEach(m => { if (m && !m.stale) m.posts.forEach(p => { if (p.post) out.push({ bucket:p.bucket, hook:p.hook, post:p.post }); }); });
   }
-  CAL.months.filter(m => m.source === 'app' && (m.y < beforeY || (m.y === beforeY && m.m < beforeM)))
-    .forEach(m => m.posts.forEach(p => { if (p.approved && p.post) out.push({ bucket:p.bucket, hook:p.hook, post:p.post }); }));
+  // the app's own past months (not shown in the calendar): the most recent approved posts, up to 36
+  if (STORE.ready) {
+    const before = storeKey(beforeY, beforeM);
+    const j = await drivePost({ action:'cal.list', client:STUDIO.name }, false).catch(() => ({}));
+    const keys = (j.months || []).map(x => x.month).filter(k => k < before).sort().slice(-8);
+    const got = await Promise.all(keys.map(k => drivePost({ action:'cal.get', client:STUDIO.name, month:k }, false).catch(() => null)));
+    got.forEach(g => { if (g && g.data) (g.data.posts || []).forEach(p => { if (p.approved && p.post) out.push({ bucket:p.bucket, hook:p.noHead ? '' : p.hook, post:p.post }); }); });
+  }
   return out.slice(-36);
 }
 
@@ -3232,7 +3238,7 @@ async function fontsReady(){
 })();
 })();
 </script>
-<script src="../clients.js?v=202610161649"></script>
+<script src="../clients.js?v=202610161651"></script>
 <script>
 // Client switcher — independent of the graphics app above.
 (() => {
