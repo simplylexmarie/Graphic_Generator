@@ -13,7 +13,7 @@ AUTH_MODE = "access"
 [[d1_databases]]
 binding = "DB"
 database_name = "graphic-generator"
-database_id = "local-dev"            # replaced with the real ID when the database is created
+database_id = "6f331024-e1f6-4d5f-a093-f97eb1fb5f4a"
 
 [[r2_buckets]]
 binding = "FILES"
